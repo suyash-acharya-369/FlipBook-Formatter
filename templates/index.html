@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flip-Book Formatter Pro</title>
+    <!-- Use a modern Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --primary: #f97316; /* Orange to match the document theme */
+            --primary-glow: rgba(249, 115, 22, 0.5);
+            --secondary: #3b82f6; /* Blue to match target document theme */
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Ambient Background Gradients */
+        .ambient-glow {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 60%);
+            top: -200px;
+            left: -200px;
+            opacity: 0.4;
+            z-index: 0;
+            pointer-events: none;
+            animation: float 10s ease-in-out infinite alternate;
+        }
+
+        .ambient-glow.blue {
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, transparent 60%);
+            bottom: -200px;
+            right: -200px;
+            top: auto;
+            left: auto;
+            animation: float 12s ease-in-out infinite alternate-reverse;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Glassmorphism Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Drag and Drop Zone */
+        .drop-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--primary);
+            background: rgba(249, 115, 22, 0.05);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            width: 64px;
+            height: 64px;
+            fill: var(--text-muted);
+            margin-bottom: 1rem;
+            transition: fill 0.3s ease;
+        }
+
+        .drop-zone:hover .upload-icon, .drop-zone.dragover .upload-icon {
+            fill: var(--primary);
+        }
+
+        .drop-zone-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .drop-zone-subtext {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        /* Selected File Status */
+        .file-status {
+            display: none;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .file-name {
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 70%;
+            text-align: left;
+        }
+
+        /* Buttons */
+        .btn {
+            background: linear-gradient(135deg, var(--primary), #ea580c);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px var(--primary-glow);
+            width: 100%;
+            margin-top: 1.5rem;
+            display: none; /* Shown when file is selected */
+            font-family: inherit;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--primary-glow);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn:disabled {
+            background: #475569;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Progress state */
+        .progress-wrapper {
+            display: none;
+            margin-top: 2rem;
+        }
+
+        .progress-text {
+            margin-bottom: 1rem;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-bottom-color: var(--primary);
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Result State */
+        .result-wrapper {
+            display: none;
+            margin-top: 2rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .success-icon {
+            width: 64px;
+            height: 64px;
+            fill: var(--success);
+            margin-bottom: 1rem;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, var(--secondary), #2563eb);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.5);
+            display: inline-block;
+            text-decoration: none;
+            margin-top: 1rem;
+        }
+
+        .download-btn:hover {
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.6);
+        }
+
+        .reset-link {
+            display: block;
+            margin-top: 1.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s ease;
+        }
+
+        .reset-link:hover {
+            color: white;
+            text-decoration: underline;
+        }
+
+        .error-msg {
+            color: var(--error);
+            margin-top: 1rem;
+            display: none;
+            font-size: 0.95rem;
+            background: rgba(239, 68, 68, 0.1);
+            padding: 0.8rem;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-glow"></div>
+    <div class="ambient-glow blue"></div>
+
+    <div class="container" id="main-container">
+        <div class="header">
+            <h1>Flip-Book Formatter</h1>
+            <p>Transform raw Word documents into perfectly aligned flip-book chapters.</p>
+        </div>
+
+        <form id="upload-form">
+            <div class="drop-zone" id="drop-zone">
+                <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.36 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                <div class="drop-zone-text">Drag & Drop your .docx file here</div>
+                <div class="drop-zone-subtext">or click to browse from your computer</div>
+                <input type="file" id="file-input" name="file" accept=".docx">
+            </div>
+
+            <div class="file-status" id="file-status">
+                <span class="file-name" id="file-name">No file selected</span>
+                <span id="remove-file" style="cursor: pointer; color: var(--text-muted); font-size: 1.2rem;">&times;</span>
+            </div>
+
+            <div class="error-msg" id="error-msg"></div>
+
+            <button type="submit" class="btn" id="submit-btn">Format Document</button>
+        </form>
+
+        <div class="progress-wrapper" id="progress-wrapper">
+            <span class="loader"></span>
+            <div class="progress-text">Applying strict formatting rules...</div>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">This usually takes a few seconds.</p>
+        </div>
+
+        <div class="result-wrapper" id="result-wrapper">
+            <svg class="success-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            <h2>Document Formatted!</h2>
+            <p style="color: var(--text-muted); margin-top: 0.5rem; margin-bottom: 1.5rem;">Your document is ready for flip-book conversion.</p>
+            
+            <a href="#" class="btn download-btn" id="download-link" style="display: inline-block; width: 100%;">Download Formatted Chapter</a>
+            
+            <a href="#" class="reset-link" id="reset-btn">Format another file</a>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const fileStatus = document.getElementById('file-status');
+        const fileNameDisplay = document.getElementById('file-name');
+        const removeFileBtn = document.getElementById('remove-file');
+        const submitBtn = document.getElementById('submit-btn');
+        const uploadForm = document.getElementById('upload-form');
+        const errorMsg = document.getElementById('error-msg');
+        
+        const mainContainer = document.getElementById('main-container');
+        const progressWrapper = document.getElementById('progress-wrapper');
+        const resultWrapper = document.getElementById('result-wrapper');
+        const downloadLink = document.getElementById('download-link');
+        const resetBtn = document.getElementById('reset-btn');
+
+        let selectedFile = null;
+
+        // Click to upload
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        // Drag events
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() { dropZone.classList.add('dragover'); }
+        function unhighlight() { dropZone.classList.remove('dragover'); }
+
+        dropZone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        fileInput.addEventListener('change', function() {
+            handleFiles(this.files);
+        });
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                if (!file.name.endsWith('.docx')) {
+                    showError('Please select a valid .docx file');
+                    return;
+                }
+                
+                selectedFile = file;
+                fileNameDisplay.textContent = file.name;
+                
+                // Update UI state
+                dropZone.style.display = 'none';
+                fileStatus.style.display = 'flex';
+                submitBtn.style.display = 'block';
+                hideError();
+            }
+        }
+
+        removeFileBtn.addEventListener('click', resetFormUI);
+
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!selectedFile) return;
+
+            // Transition to loading state
+            fileStatus.style.display = 'none';
+            submitBtn.style.display = 'none';
+            errorMsg.style.display = 'none';
+            progressWrapper.style.display = 'block';
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    // Transition to success state
+                    progressWrapper.style.display = 'none';
+                    resultWrapper.style.display = 'block';
+                    
+                    // Setup download link
+                    downloadLink.href = `/download/${result.job_id}/${encodeURIComponent(result.filename)}`;
+                } else {
+                    throw new Error(result.error || 'Unknown error occurred during formatting');
+                }
+            } catch (err) {
+                // Transition to error state
+                progressWrapper.style.display = 'none';
+                fileStatus.style.display = 'flex';
+                submitBtn.style.display = 'block';
+                showError(err.message);
+            }
+        });
+
+        resetBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetFormUI();
+        });
+
+        function resetFormUI() {
+            selectedFile = null;
+            fileInput.value = '';
+            
+            dropZone.style.display = 'block';
+            fileStatus.style.display = 'none';
+            submitBtn.style.display = 'none';
+            resultWrapper.style.display = 'none';
+            progressWrapper.style.display = 'none';
+            
+            hideError();
+        }
+
+        function showError(msg) {
+            errorMsg.textContent = msg;
+            errorMsg.style.display = 'block';
+        }
+
+        function hideError() {
+            errorMsg.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
