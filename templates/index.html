@@ -316,7 +316,7 @@
             <p>Transform raw Word documents into perfectly aligned flip-book chapters.</p>
         </div>
 
-        <form id="upload-form">
+        <div id="upload-form">
             <div class="drop-zone" id="drop-zone">
                 <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                     <path
@@ -335,8 +335,8 @@
 
             <div class="error-msg" id="error-msg"></div>
 
-            <button type="submit" class="btn" id="submit-btn">Format Document</button>
-        </form>
+            <button type="button" class="btn" id="submit-btn" onclick="submitDoc(event)">Format Document</button>
+        </div>
 
         <div class="progress-wrapper" id="progress-wrapper">
             <span class="loader"></span>
@@ -436,8 +436,8 @@
 
         removeFileBtn.addEventListener('click', resetFormUI);
 
-        uploadForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        async function submitDoc(e) {
+            if (e) e.preventDefault();
             if (!selectedFile) return;
 
             // Transition to loading state
@@ -485,7 +485,7 @@
                 submitBtn.style.display = 'block';
                 showError(err.message);
             }
-        });
+        }
 
         resetBtn.addEventListener('click', (e) => {
             e.preventDefault();
