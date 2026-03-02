@@ -9,16 +9,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #fe8c00;
-            --glass-bg: rgba(0, 0, 0, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --primary: #f97316;
+            --bg-color: #122f7f;
+            --glass-bg: rgb(238, 143, 34);
+            --glass-border: rgba(0, 0, 0, 0.1);
+            --primary: #000000;
             /* Orange to match the document theme */
-            --primary-glow: rgba(249, 115, 22, 0.5);
+            --primary-glow: rgba(0, 0, 0, 0.5);
             --secondary: #3b82f6;
             /* Blue to match target document theme */
             --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --text-muted: #000000;
             --success: #10b981;
             --error: #ef4444;
         }
@@ -121,7 +121,7 @@
 
         /* Drag and Drop Zone */
         .drop-zone {
-            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border: 2px dashed rgba(0, 0, 0, 0.2);
             border-radius: 16px;
             padding: 3rem 2rem;
             cursor: pointer;
@@ -133,7 +133,7 @@
         .drop-zone:hover,
         .drop-zone.dragover {
             border-color: var(--primary);
-            background: rgba(249, 115, 22, 0.05);
+            background: rgba(0, 0, 0, 0.05);
             transform: scale(1.02);
         }
 
@@ -188,7 +188,7 @@
         /* Buttons */
         .btn {
             background: linear-gradient(135deg, var(--primary), #ea580c);
-            color: white;
+            color: rgb(255, 255, 255);
             border: none;
             padding: 0.8rem 2rem;
             font-size: 1.1rem;
@@ -214,7 +214,7 @@
         }
 
         .btn:disabled {
-            background: #475569;
+            background: #000000;
             box-shadow: none;
             cursor: not-allowed;
             transform: none;
