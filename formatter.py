@@ -224,6 +224,10 @@ def format_document(input_path, output_path):
                 
             if not full_text and not safe_images: continue
             
+            # Skip stray page numbers (paragraphs that are purely digits)
+            if full_text.strip().isdigit() and not safe_images:
+                continue
+            
             if toc_skip:
                 if full_text == "FOXPRO":
                     items.append({'type': 'h1', 'text': 'CHAPTER-1\nFOXPRO', 'runs': []})
