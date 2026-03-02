@@ -8,6 +8,8 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml import OxmlElement
 from lxml import etree
+import os
+import tempfile
 
 # Wrapped formatting logic for backend usage
 
@@ -158,11 +160,41 @@ def set_table_borders(table):
         borders.append(b)
     tblPr.append(borders)
 
+def flatten_numbering(input_path, output_path):
+    """Uses MS Word via COM to permanently convert list numbers/bullets into plain text"""
+    try:
+        import win32com.client
+        import pythoncom
+        pythoncom.CoInitialize()
+        word = win32com.client.DispatchEx("Word.Application")
+        word.Visible = False
+        try:
+            # Must use absolute paths for COM
+            abs_in = os.path.abspath(input_path)
+            abs_out = os.path.abspath(output_path)
+            doc = word.Documents.Open(abs_in)
+            doc.ConvertNumbersToText()
+            doc.SaveAs2(abs_out, 16) # wdFormatDocumentDefault
+            doc.Close()
+        finally:
+            word.Quit()
+            pythoncom.CoUninitialize()
+        return True
+    except Exception as e:
+        print(f"Failed to flatten numbering: {e}")
+        return False
+
 def format_document(input_path, output_path):
     print("PHASE 1: Extracting content from original raw file...")
+    
+    # Pre-process doc to flatten numbering and bullets to literal text
+    flat_path = input_path + "_flat.docx"
+    has_flat = flatten_numbering(input_path, flat_path)
+    target_parse_path = flat_path if has_flat else input_path
+    
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        raw = Document(input_path)
+        raw = Document(target_parse_path)
 
     items = []
     toc_skip = True
@@ -229,17 +261,30 @@ def format_document(input_path, output_path):
 
             ctype = 'body'
             lower_text = full_text.lower()
-            is_bold_para = any(r['bold'] for r in runs) and len(full_text) < 100
+            
+            # Count leading numbers to determine heading depth: e.g. "1.1.2 " -> depth 3
+            # Match formats like: "1.", "1.1", "1.1.1", "1.1.1." followed by space
+            num_match = re.match(r'^((?:\d+\.)+)(?:\d+)?(?=\s|\b)', full_text)
+            depth = 0
+            if num_match:
+                # e.g "1.1." count of dots gives depth
+                depth = num_match.group(1).count('.')
+                
+            is_bold_para = any(r['bold'] for r in runs) and len(full_text) < 150
             
             if lower_text.startswith("q") and len(lower_text)>1 and lower_text[1].isdigit():
                 is_bold_para = False
                 
             if is_bold_para:
-                if lower_text in h2_titles: ctype = 'h2'
+                if depth == 1: ctype = 'h2'
+                elif depth == 2: ctype = 'h3'
+                elif depth >= 3: ctype = 'h4'
+                # Fallback to text matching if no numbers
+                elif lower_text in h2_titles: ctype = 'h2'
                 elif lower_text in h3_titles: ctype = 'h3'
                 elif lower_text in h4_titles: ctype = 'h4'
                 elif re.match(r'^fig(ure)?[\s:\.\-]', lower_text, re.IGNORECASE): ctype = 'fig'
-                else: ctype = 'h3'  # fallback to h3 if it is bold and not a question object
+                else: ctype = 'h3'  # fallback
             
             if safe_images and not full_text: ctype = 'img'
             if ctype == 'body' and re.match(r'^fig(ure)?[\s:\.\-]', lower_text, re.IGNORECASE): ctype = 'fig'
@@ -358,5 +403,11 @@ def format_document(input_path, output_path):
 
     print(f"Saving to {output_path}")
     doc.save(output_path)
+    
+    # Cleanup temp flattened file
+    if has_flat:
+        try: os.remove(flat_path)
+        except: pass
+        
     print("DONE!")
 
