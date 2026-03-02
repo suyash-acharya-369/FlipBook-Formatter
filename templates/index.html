@@ -119,21 +119,50 @@
             margin-bottom: 2rem;
         }
 
-        /* Drag and Drop Zone */
+        /* Drag and Drop Zone - Styled as a Page */
         .drop-zone {
             border: 2px dashed rgba(0, 0, 0, 0.2);
-            border-radius: 16px;
+            border-radius: 4px 24px 4px 4px;
+            /* Larger radius on top right for the fold */
             padding: 3rem 2rem;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
-            background: rgba(0, 0, 0, 0.2);
+            background: #ffffff;
+            /* Page white */
+            color: #1e293b;
+            /* Dark text for contrast on white */
+            box-shadow:
+                0 10px 25px -5px rgba(0, 0, 0, 0.1),
+                0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* The folded corner effect */
+        .drop-zone::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            border-width: 0 32px 32px 0;
+            border-style: solid;
+            border-color: var(--glass-bg) var(--glass-bg) #e2e8f0 #e2e8f0;
+            border-radius: 0 0 0 12px;
+            box-shadow: -4px 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            z-index: 2;
+        }
+
+        .drop-zone:hover::before,
+        .drop-zone.dragover::before {
+            border-width: 0 40px 40px 0;
+            box-shadow: -6px 6px 12px rgba(0, 0, 0, 0.15);
         }
 
         .drop-zone:hover,
         .drop-zone.dragover {
             border-color: var(--primary);
-            background: rgba(0, 0, 0, 0.05);
+            background: #f8fafc;
+            /* Slightly off-white on hover */
             transform: scale(1.02);
         }
 
@@ -154,10 +183,13 @@
             font-size: 1.2rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
+            color: #0f172a;
+            /* Darker text for white page */
         }
 
         .drop-zone-subtext {
-            color: var(--text-muted);
+            color: #475569;
+            /* Darker muted text for white page */
             font-size: 0.9rem;
         }
 
@@ -331,9 +363,9 @@
 
         .floating-page {
             position: absolute;
-            background: linear-gradient(to right, rgba(238, 143, 34, 0.05), rgba(238, 143, 34, 0.15));
-            border-right: 1px solid rgba(238, 143, 34, 0.3);
-            border-top: 1px solid rgba(238, 143, 34, 0.2);
+            background: linear-gradient(to right, rgb(255, 187, 0), rgba(238, 143, 34, 0.15));
+            border-right: 1px solid rgb(255, 136, 0);
+            border-top: 1px solid rgb(255, 140, 0);
             border-radius: 4px 16px 16px 4px;
             box-shadow:
                 inset 15px 0 30px rgba(0, 0, 0, 0.2),
