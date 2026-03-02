@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,12 +9,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #0f172a;
-            --glass-bg: rgba(30, 41, 59, 0.7);
+            --bg-color: #000000;
+            --glass-bg: rgba(0, 0, 0, 0.7);
             --glass-border: rgba(255, 255, 255, 0.1);
-            --primary: #f97316; /* Orange to match the document theme */
+            --primary: #f97316;
+            /* Orange to match the document theme */
             --primary-glow: rgba(249, 115, 22, 0.5);
-            --secondary: #3b82f6; /* Blue to match target document theme */
+            --secondary: #3b82f6;
+            /* Blue to match target document theme */
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --success: #10b981;
@@ -63,8 +66,13 @@
         }
 
         @keyframes float {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(50px, 50px); }
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(50px, 50px);
+            }
         }
 
         /* Glassmorphism Container */
@@ -110,7 +118,8 @@
             background: rgba(0, 0, 0, 0.2);
         }
 
-        .drop-zone:hover, .drop-zone.dragover {
+        .drop-zone:hover,
+        .drop-zone.dragover {
             border-color: var(--primary);
             background: rgba(249, 115, 22, 0.05);
             transform: scale(1.02);
@@ -124,7 +133,8 @@
             transition: fill 0.3s ease;
         }
 
-        .drop-zone:hover .upload-icon, .drop-zone.dragover .upload-icon {
+        .drop-zone:hover .upload-icon,
+        .drop-zone.dragover .upload-icon {
             fill: var(--primary);
         }
 
@@ -177,7 +187,8 @@
             box-shadow: 0 4px 15px var(--primary-glow);
             width: 100%;
             margin-top: 1.5rem;
-            display: none; /* Shown when file is selected */
+            display: none;
+            /* Shown when file is selected */
             font-family: inherit;
         }
 
@@ -221,8 +232,13 @@
         }
 
         @keyframes rotation {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         /* Result State */
@@ -233,8 +249,15 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .success-icon {
@@ -281,6 +304,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <div class="ambient-glow"></div>
@@ -294,7 +318,10 @@
 
         <form id="upload-form">
             <div class="drop-zone" id="drop-zone">
-                <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.36 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path
+                        d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.36 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
+                </svg>
                 <div class="drop-zone-text">Drag & Drop your .docx file here</div>
                 <div class="drop-zone-subtext">or click to browse from your computer</div>
                 <input type="file" id="file-input" name="file" accept=".docx">
@@ -302,7 +329,8 @@
 
             <div class="file-status" id="file-status">
                 <span class="file-name" id="file-name">No file selected</span>
-                <span id="remove-file" style="cursor: pointer; color: var(--text-muted); font-size: 1.2rem;">&times;</span>
+                <span id="remove-file"
+                    style="cursor: pointer; color: var(--text-muted); font-size: 1.2rem;">&times;</span>
             </div>
 
             <div class="error-msg" id="error-msg"></div>
@@ -317,12 +345,17 @@
         </div>
 
         <div class="result-wrapper" id="result-wrapper">
-            <svg class="success-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            <svg class="success-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+            </svg>
             <h2>Document Formatted!</h2>
-            <p style="color: var(--text-muted); margin-top: 0.5rem; margin-bottom: 1.5rem;">Your document is ready for flip-book conversion.</p>
-            
-            <a href="#" class="btn download-btn" id="download-link" style="display: inline-block; width: 100%;">Download Formatted Chapter</a>
-            
+            <p style="color: var(--text-muted); margin-top: 0.5rem; margin-bottom: 1.5rem;">Your document is ready for
+                flip-book conversion.</p>
+
+            <a href="#" class="btn download-btn" id="download-link" style="display: inline-block; width: 100%;">Download
+                Formatted Chapter</a>
+
             <a href="#" class="reset-link" id="reset-btn">Format another file</a>
         </div>
     </div>
@@ -336,7 +369,7 @@
         const submitBtn = document.getElementById('submit-btn');
         const uploadForm = document.getElementById('upload-form');
         const errorMsg = document.getElementById('error-msg');
-        
+
         const mainContainer = document.getElementById('main-container');
         const progressWrapper = document.getElementById('progress-wrapper');
         const resultWrapper = document.getElementById('result-wrapper');
@@ -378,7 +411,7 @@
             handleFiles(files);
         }
 
-        fileInput.addEventListener('change', function() {
+        fileInput.addEventListener('change', function () {
             handleFiles(this.files);
         });
 
@@ -389,10 +422,10 @@
                     showError('Please select a valid .docx file');
                     return;
                 }
-                
+
                 selectedFile = file;
                 fileNameDisplay.textContent = file.name;
-                
+
                 // Update UI state
                 dropZone.style.display = 'none';
                 fileStatus.style.display = 'flex';
@@ -422,13 +455,21 @@
                     body: formData
                 });
 
-                const result = await response.json();
+                let result;
+                const isJson = response.headers.get('content-type')?.includes('application/json');
+
+                if (isJson) {
+                    result = await response.json();
+                } else {
+                    const text = await response.text();
+                    throw new Error(`Server returned ${response.status}: ${response.statusText}. Please check the file and try again.`);
+                }
 
                 if (response.ok && result.success) {
                     // Transition to success state
                     progressWrapper.style.display = 'none';
                     resultWrapper.style.display = 'block';
-                    
+
                     // Setup download link
                     downloadLink.href = `/download/${result.job_id}/${encodeURIComponent(result.filename)}`;
                 } else {
@@ -451,13 +492,13 @@
         function resetFormUI() {
             selectedFile = null;
             fileInput.value = '';
-            
+
             dropZone.style.display = 'block';
             fileStatus.style.display = 'none';
             submitBtn.style.display = 'none';
             resultWrapper.style.display = 'none';
             progressWrapper.style.display = 'none';
-            
+
             hideError();
         }
 
@@ -471,4 +512,5 @@
         }
     </script>
 </body>
+
 </html>
