@@ -5,11 +5,13 @@ from glob import glob
 from flask import Flask, request, send_file, render_template, jsonify
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import HTTPException
+from flask_cors import CORS
 
 # Import our formatting logic
 from formatter import format_document
 
 app = Flask(__name__)
+CORS(app)
 
 # Configure upload and output directories
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__name__)), 'uploads')
