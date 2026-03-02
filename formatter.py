@@ -330,7 +330,7 @@ def format_document(input_path, output_path):
                 if i > 0:
                     p.add_run().add_break()
                 add_run(p, part_text, 'Montserrat', 35, bold=True, color=WHITE)
-            set_spacing(p, auto_before=True, auto_after=True, line_mult=None)
+            set_spacing(p, auto_before=True, auto_after=True, line_mult=1.05)
             
         elif ct in ['h2', 'h3', 'h4']:
             p = doc.add_paragraph()
@@ -341,10 +341,7 @@ def format_document(input_path, output_path):
             fmt_text = item['text'].title()
             
             add_run(p, fmt_text, 'Times New Roman', size, bold=True, color=color)
-            if ct in ['h2', 'h3']:
-                set_spacing(p, auto_before=True, auto_after=True, line_mult=None)
-            else:
-                set_spacing(p, before=12, after=12, line_mult=1.05)
+            set_spacing(p, auto_before=True, auto_after=True, line_mult=1.05)
             
         elif ct == 'fig':
             p = doc.add_paragraph()
