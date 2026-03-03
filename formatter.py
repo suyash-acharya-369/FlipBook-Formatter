@@ -243,8 +243,8 @@ def format_document(input_path, output_path):
                     ctype = 'h3'  # Blue heading (e.g. 1.1.1, 1.3.2)
                 elif match_2:
                     ctype = 'h2'  # Orange heading (e.g. 1.1, 2.1)
-                elif lower_text in ('check your progress', 'summary'):
-                    ctype = 'h2'  # Orange heading for these standard section titles
+                elif lower_text.strip() in ('check your progress', 'summary', 'check your progress:', 'summary:'):
+                    ctype = 'h2'  # Orange heading, auto-auto spacing, 1.05 multiple
                 
                 # Figure captions — only when text starts with "fig" keyword
                 if ctype == 'body' and lower_text.startswith('fig'):
