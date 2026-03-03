@@ -171,7 +171,6 @@ def format_document(input_path, output_path):
         raw = Document(target_parse_path)
 
     items = []
-    first_heading_found = False
 
     for child in raw.element.body:
         tag = child.tag
@@ -227,33 +226,22 @@ def format_document(input_path, output_path):
             ctype = 'body'
             lower_text = full_text.lower()
             
-            # ── Universal heading detection ──
-            # 1) Count leading numbering depth: "1." → depth 1, "1.1" → depth 2, "1.1.1" → depth 3
-            num_match = re.match(r'^((?:\d+\.)+)(?:\d+)?(?=\s|\b)', full_text)
-            depth = 0
-            if num_match:
-                depth = num_match.group(1).count('.')
-                
-            # 2) Check if paragraph is bold and short (likely a heading)
-            is_bold_para = any(r['bold'] for r in runs) and len(full_text) < 150
+            # ── Simple numbering-only heading detection ──
+            # Match patterns like "1.1", "2.3", "10.5" etc. (X.Y = 2 numbers)
+            # Match patterns like "1.1.1", "2.3.4", "1.10.2" etc. (X.Y.Z = 3 numbers)
+            match_3 = re.match(r'^(\d+\.\d+\.\d+)', full_text)  # e.g. 1.1.1
+            match_2 = re.match(r'^(\d+\.\d+)(?!\.\d)', full_text)  # e.g. 1.1 (but NOT 1.1.1)
             
-            # 3) Detect the first bold+uppercase paragraph as H1 (chapter title)
-            if not first_heading_found and is_bold_para and full_text.isupper() and len(full_text) < 100:
-                ctype = 'h1'
-                first_heading_found = True
-            elif is_bold_para:
-                first_heading_found = True
-                if depth == 1:    ctype = 'h2'  # e.g. "1. Objectives"
-                elif depth == 2:  ctype = 'h3'  # e.g. "1.1 Introduction"
-                elif depth >= 3:  ctype = 'h4'  # e.g. "1.1.1 Example"
-                elif re.match(r'^fig(ure)?[\s:\.\-]', lower_text, re.IGNORECASE):
-                    ctype = 'fig'
-                else:
-                    # Bold + short + no numbering → default to H3 (sub-heading)
-                    ctype = 'h3'
+            if match_3:
+                ctype = 'h3'  # Blue heading (e.g. 1.1.1, 1.3.2)
+            elif match_2:
+                ctype = 'h2'  # Orange heading (e.g. 1.1, 2.1)
+            
+            # Figure captions
+            if ctype == 'body' and re.match(r'^fig(ure)?[\s:\.\-]', lower_text, re.IGNORECASE):
+                ctype = 'fig'
             
             if safe_images and not full_text: ctype = 'img'
-            if ctype == 'body' and re.match(r'^fig(ure)?[\s:\.\-]', lower_text, re.IGNORECASE): ctype = 'fig'
 
             items.append({'type': ctype, 'text': full_text, 'runs': runs, 'images': safe_images})
             
