@@ -96,7 +96,12 @@
             padding: 3rem;
             width: 90%;
             max-width: 600px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            box-shadow:
+                0 25px 50px -12px rgba(0, 0, 0, 0.4),
+                0 0 60px -10px rgba(238, 143, 34, 0.25),
+                /* Outer subtle orange glow */
+                0 0 20px -5px rgba(238, 143, 34, 0.4);
+            /* Inner brighter orange ring */
             text-align: center;
             transition: all 0.3s ease;
         }
