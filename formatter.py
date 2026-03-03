@@ -248,8 +248,8 @@ def format_document(input_path, output_path):
                 elif lower_text in ('check your progress', 'summary'):
                     ctype = 'h2'  # Orange heading for these standard section titles
                 
-                # Figure captions
-                if ctype == 'body' and re.match(r'^fig(ure)?[\s:\.\-]', lower_text, re.IGNORECASE):
+                # Figure captions — only when text starts with "fig" keyword
+                if ctype == 'body' and lower_text.startswith('fig'):
                     ctype = 'fig'
             
             if safe_images and not full_text: ctype = 'img'
