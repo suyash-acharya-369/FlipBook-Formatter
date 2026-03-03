@@ -18,34 +18,8 @@ BLUE   = RGBColor(18, 67, 149)
 BLACK  = RGBColor(29, 29, 27)
 WHITE  = RGBColor(255, 255, 255)
 
-h2_titles = {
-    "objectives", "introduction", "programming", "steps in program development",
-    "problem identification", "task analysis", "data analysis and input design",
-    "output identification and specifications", "designing the solution",
-    "decision tables", "algorithm", "data validation", "flowcharts",
-    "coding the program", "debugging", "testing", "summary", "check your progress"
-}
-
-h3_titles = {
-    "for source documents", "for files", "for processing", "for output",
-    "printer and page layouts", "screen and page layouts",
-    "efficient algorithms.", "approximate algorithm", "explanation",
-    "refined algorithm", "types of errors", "syntax errors", "desk checking",
-    "levels of testing", "difference between testing and debugging",
-    "a. descriptive questions", "b. multiple choice questions (mcqs)",
-    "answer table"
-}
-
-h4_titles = {
-    "example 1.1", "example 1.2", "example 1.3: servicing a car",
-    "example 1.4: mail ordering", "example 1.5",
-    "advantages of using decision tables", "disadvantages",
-    "where to use decision tables and where flowcharts?",
-    "(1) input validation", "valid code", "valid character",
-    "valid field size, sign, and composition", "valid transaction",
-    "valid combinations of field", "missing date test", "check digit",
-    "sequence test", "limit of reasonableness test"
-}
+# No hardcoded heading dictionaries — detection is purely structure-based
+# (numbering depth + bold formatting) so it works for ANY document.
 
 CONTENT_WIDTH_CM = 21.0 - 2 * 2.54
 CONTENT_WIDTH_EMU = int(CONTENT_WIDTH_CM * 360000)
@@ -197,7 +171,7 @@ def format_document(input_path, output_path):
         raw = Document(target_parse_path)
 
     items = []
-    toc_skip = True
+    first_heading_found = False
 
     for child in raw.element.body:
         tag = child.tag
@@ -218,25 +192,12 @@ def format_document(input_path, output_path):
                         for inl in d.findall(qn('wp:inline')):
                             res = extract_safe_image(raw, inl)
                             if res: safe_images.append(res)
-
-            if full_text in ["Programming Concepts and Technique, Fox Pro", "Task Analysis-Decision Tables"] and not (full_text.isupper() and "TASK ANALYSIS-DECISION TABLES" in full_text):
-                continue
                 
             if not full_text and not safe_images: continue
             
             # Skip stray page numbers (paragraphs that are purely digits)
             if full_text.strip().isdigit() and not safe_images:
                 continue
-            
-            if toc_skip:
-                if full_text == "FOXPRO":
-                    items.append({'type': 'h1', 'text': 'CHAPTER-1\nFOXPRO', 'runs': []})
-                    continue
-                if full_text.lower() == "objectives":
-                    toc_skip = False
-                else:
-                    if full_text.isupper() and not safe_images and full_text != "FOXPRO":
-                        continue
                     
             runs = []
             for r in child.findall(qn('w:r')):
@@ -266,29 +227,30 @@ def format_document(input_path, output_path):
             ctype = 'body'
             lower_text = full_text.lower()
             
-            # Count leading numbers to determine heading depth: e.g. "1.1.2 " -> depth 3
-            # Match formats like: "1.", "1.1", "1.1.1", "1.1.1." followed by space
+            # ── Universal heading detection ──
+            # 1) Count leading numbering depth: "1." → depth 1, "1.1" → depth 2, "1.1.1" → depth 3
             num_match = re.match(r'^((?:\d+\.)+)(?:\d+)?(?=\s|\b)', full_text)
             depth = 0
             if num_match:
-                # e.g "1.1." count of dots gives depth
                 depth = num_match.group(1).count('.')
                 
+            # 2) Check if paragraph is bold and short (likely a heading)
             is_bold_para = any(r['bold'] for r in runs) and len(full_text) < 150
             
-            if lower_text.startswith("q") and len(lower_text)>1 and lower_text[1].isdigit():
-                is_bold_para = False
-                
-            if is_bold_para:
-                if depth == 1: ctype = 'h2'
-                elif depth == 2: ctype = 'h3'
-                elif depth >= 3: ctype = 'h4'
-                # Fallback to text matching if no numbers
-                elif lower_text in h2_titles: ctype = 'h2'
-                elif lower_text in h3_titles: ctype = 'h3'
-                elif lower_text in h4_titles: ctype = 'h4'
-                elif re.match(r'^fig(ure)?[\s:\.\-]', lower_text, re.IGNORECASE): ctype = 'fig'
-                else: ctype = 'h3'  # fallback
+            # 3) Detect the first bold+uppercase paragraph as H1 (chapter title)
+            if not first_heading_found and is_bold_para and full_text.isupper() and len(full_text) < 100:
+                ctype = 'h1'
+                first_heading_found = True
+            elif is_bold_para:
+                first_heading_found = True
+                if depth == 1:    ctype = 'h2'  # e.g. "1. Objectives"
+                elif depth == 2:  ctype = 'h3'  # e.g. "1.1 Introduction"
+                elif depth >= 3:  ctype = 'h4'  # e.g. "1.1.1 Example"
+                elif re.match(r'^fig(ure)?[\s:\.\-]', lower_text, re.IGNORECASE):
+                    ctype = 'fig'
+                else:
+                    # Bold + short + no numbering → default to H3 (sub-heading)
+                    ctype = 'h3'
             
             if safe_images and not full_text: ctype = 'img'
             if ctype == 'body' and re.match(r'^fig(ure)?[\s:\.\-]', lower_text, re.IGNORECASE): ctype = 'fig'
