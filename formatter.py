@@ -171,6 +171,7 @@ def format_document(input_path, output_path):
         raw = Document(target_parse_path)
 
     items = []
+    first_text_found = False  # Track whether we've seen the first text paragraph (= title)
 
     for child in raw.element.body:
         tag = child.tag
@@ -214,6 +215,8 @@ def format_document(input_path, output_path):
             # --- Clean runs ---
             for rc in runs:
                 rc['text'] = re.sub(r' +', ' ', rc['text'].replace('\u2028', ' ').replace('\t', ' ').replace('\n', ' '))
+                # Strip stray bullet-point artifacts ("o" or "o " at start of a run)
+                rc['text'] = re.sub(r'^o\s+', '', rc['text'])
             for i in range(len(runs) - 1):
                 if runs[i]['text'].endswith(' ') and runs[i+1]['text'].startswith(' '):
                     runs[i+1]['text'] = runs[i+1]['text'][1:]
@@ -221,27 +224,33 @@ def format_document(input_path, output_path):
                 runs[0]['text'] = runs[0]['text'].lstrip()
                 runs[-1]['text'] = runs[-1]['text'].rstrip()
             runs = [rc for rc in runs if rc['text']]
+            # Rebuild full_text after cleaning runs
+            if runs:
+                full_text = ''.join(rc['text'] for rc in runs).strip()
             # ------------------
 
             ctype = 'body'
             lower_text = full_text.lower()
             
-            # ── Simple numbering-only heading detection ──
-            # Match patterns like "1.1", "2.3", "10.5" etc. (X.Y = 2 numbers)
-            # Match patterns like "1.1.1", "2.3.4", "1.10.2" etc. (X.Y.Z = 3 numbers)
-            match_3 = re.match(r'^(\d+\.\d+\.\d+)', full_text)  # e.g. 1.1.1
-            match_2 = re.match(r'^(\d+\.\d+)(?!\.\d)', full_text)  # e.g. 1.1 (but NOT 1.1.1)
-            
-            if match_3:
-                ctype = 'h3'  # Blue heading (e.g. 1.1.1, 1.3.2)
-            elif match_2:
-                ctype = 'h2'  # Orange heading (e.g. 1.1, 2.1)
-            elif lower_text in ('check your progress', 'summary'):
-                ctype = 'h2'  # Orange heading for these standard section titles
-            
-            # Figure captions
-            if ctype == 'body' and re.match(r'^fig(ure)?[\s:\.\-]', lower_text, re.IGNORECASE):
-                ctype = 'fig'
+            # ── First text paragraph = H1 (document title) ──
+            if not first_text_found and full_text:
+                ctype = 'h1'
+                first_text_found = True
+            else:
+                # ── Simple numbering-only heading detection ──
+                match_3 = re.match(r'^(\d+\.\d+\.\d+)', full_text)  # e.g. 1.1.1
+                match_2 = re.match(r'^(\d+\.\d+)(?!\.\d)', full_text)  # e.g. 1.1 (but NOT 1.1.1)
+                
+                if match_3:
+                    ctype = 'h3'  # Blue heading (e.g. 1.1.1, 1.3.2)
+                elif match_2:
+                    ctype = 'h2'  # Orange heading (e.g. 1.1, 2.1)
+                elif lower_text in ('check your progress', 'summary'):
+                    ctype = 'h2'  # Orange heading for these standard section titles
+                
+                # Figure captions
+                if ctype == 'body' and re.match(r'^fig(ure)?[\s:\.\-]', lower_text, re.IGNORECASE):
+                    ctype = 'fig'
             
             if safe_images and not full_text: ctype = 'img'
 
@@ -261,6 +270,7 @@ def format_document(input_path, output_path):
     doc = Document()
     sec = doc.sections[0]
     sec.page_width, sec.page_height = Cm(21), Cm(29.7)
+    # Moderate margins: Top/Bottom 2.54cm, Left/Right 1.91cm
     sec.top_margin, sec.bottom_margin = Cm(2.54), Cm(2.54)
     sec.left_margin, sec.right_margin = Cm(1.91), Cm(1.91)
 
