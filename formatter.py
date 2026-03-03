@@ -215,8 +215,6 @@ def format_document(input_path, output_path):
             # --- Clean runs ---
             for rc in runs:
                 rc['text'] = re.sub(r' +', ' ', rc['text'].replace('\u2028', ' ').replace('\t', ' ').replace('\n', ' '))
-                # Strip stray bullet-point artifacts ("o" or "o " at start of a run)
-                rc['text'] = re.sub(r'^o\s+', '', rc['text'])
             for i in range(len(runs) - 1):
                 if runs[i]['text'].endswith(' ') and runs[i+1]['text'].startswith(' '):
                     runs[i+1]['text'] = runs[i+1]['text'][1:]
