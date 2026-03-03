@@ -236,6 +236,8 @@ def format_document(input_path, output_path):
                 ctype = 'h3'  # Blue heading (e.g. 1.1.1, 1.3.2)
             elif match_2:
                 ctype = 'h2'  # Orange heading (e.g. 1.1, 2.1)
+            elif lower_text in ('check your progress', 'summary'):
+                ctype = 'h2'  # Orange heading for these standard section titles
             
             # Figure captions
             if ctype == 'body' and re.match(r'^fig(ure)?[\s:\.\-]', lower_text, re.IGNORECASE):
@@ -245,7 +247,7 @@ def format_document(input_path, output_path):
 
             items.append({'type': ctype, 'text': full_text, 'runs': runs, 'images': safe_images})
             
-        elif tag == qn('w:tbl') and not toc_skip:
+        elif tag == qn('w:tbl'):
             rows = []
             for tr in child.findall(qn('w:tr')):
                 cells = []
