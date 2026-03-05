@@ -21,13 +21,37 @@ WHITE  = RGBColor(255, 255, 255)
 # No hardcoded heading dictionaries — detection is purely structure-based
 # (numbering depth + bold formatting) so it works for ANY document.
 
-# Explicit bullet marker characters: •, -, *, □, ▪ and their Unicode variants
-# These are stripped and replaced with real Word 'List Bullet' style
+# Explicit bullet marker characters: •, -, *, □, ▪ and Unicode variants
+# \s* = zero or more spaces after the marker (flatten_numbering may leave no gap)
 BULLET_MARKER = re.compile(
     r'^[\u2022\u2023\u25CF\u25CB\u25AA\u25AB\u25A0\u25A1\u25B8\u25B9'
     r'\u2043\u2013\u2014\u2610\u25E6\u25C6\u25C7\uf0b7\uf0a7\uf076'
-    r'\uf0d8\u00B7o\-\*]\s+'
+    r'\uf0d8\u00B7\-\*]\s*'
 )
+
+# Numbered list prefix patterns → Word style mapping
+# Order matters: check more specific patterns first
+LIST_PREFIX_PATTERNS = [
+    # Roman: (i), (ii), i), ii), i., ii.  etc.
+    (re.compile(r'^\(([ivxlcdm]+)\)\s*', re.IGNORECASE), 'list_roman'),
+    (re.compile(r'^([ivxlcdm]+)\)\s*', re.IGNORECASE),   'list_roman'),
+    (re.compile(r'^([ivxlcdm]+)\.\s*', re.IGNORECASE),   'list_roman'),
+    # Alphabetic: (a), a), a.  etc.
+    (re.compile(r'^\(([a-zA-Z])\)\s*'),   'list_alpha'),
+    (re.compile(r'^([a-zA-Z])\)\s*'),     'list_alpha'),
+    (re.compile(r'^([a-zA-Z])\.\s+'),     'list_alpha'),   # require space to avoid matching e.g. "A4"
+    # Numeric: 1., 1), (1)  etc.
+    (re.compile(r'^\((\d+)\)\s*'),         'list_number'),
+    (re.compile(r'^(\d+)\)\s*'),           'list_number'),
+    (re.compile(r'^(\d+)\.\s*'),           'list_number'),
+]
+
+# Map list types to Word styles
+LIST_STYLE_MAP = {
+    'list_number': 'List Number',
+    'list_alpha':  'List Number 2',
+    'list_roman':  'List Number 3',
+}
 
 CONTENT_WIDTH_CM = 21.0 - 2 * 2.54
 CONTENT_WIDTH_EMU = int(CONTENT_WIDTH_CM * 360000)
@@ -153,6 +177,60 @@ def strip_bullet_marker(full_text, runs):
     cleaned_runs = [rc for rc in runs if rc['text']]
     
     return cleaned_text, cleaned_runs, True
+
+def strip_list_prefix(full_text, runs):
+    """Detect and remove a numbered list prefix (numeric, alpha, roman).
+    Returns (cleaned_text, cleaned_runs, list_type_or_None)."""
+    for pattern, list_type in LIST_PREFIX_PATTERNS:
+        m = pattern.match(full_text)
+        if m:
+            prefix_len = len(m.group(0))
+            cleaned_text = full_text[prefix_len:].strip()
+            
+            # Don't match single letter followed by capital (likely a sentence, not a list)
+            # e.g. "A computer is..." should NOT be treated as a list
+            if list_type == 'list_alpha' and len(cleaned_text) > 0 and cleaned_text[0].isupper():
+                # Only match if the alpha prefix is lowercase
+                alpha_part = m.group(1) if m.lastindex else ''
+                if alpha_part.isupper() and len(alpha_part) == 1:
+                    continue  # Skip — likely just a sentence starting with "A" or "I"
+            
+            # Strip prefix from runs
+            chars_left = prefix_len
+            for rc in runs:
+                if chars_left <= 0: break
+                if len(rc['text']) <= chars_left:
+                    chars_left -= len(rc['text'])
+                    rc['text'] = ''
+                else:
+                    rc['text'] = rc['text'][chars_left:].lstrip()
+                    chars_left = 0
+            cleaned_runs = [rc for rc in runs if rc['text']]
+            
+            return cleaned_text, cleaned_runs, list_type
+    
+    return full_text, runs, None
+
+def apply_list_style(doc, para, list_type):
+    """Apply a real Word numbered list style to a paragraph."""
+    style_name = LIST_STYLE_MAP.get(list_type, 'List Number')
+    try:
+        para.style = doc.styles[style_name]
+    except KeyError:
+        # Fallback: try 'List Number' or manual XML
+        try:
+            para.style = doc.styles['List Number']
+        except KeyError:
+            pass
+    
+    # Set indent for proper list alignment
+    pPr = para._p.get_or_add_pPr()
+    ind = pPr.find(qn('w:ind'))
+    if ind is None:
+        ind = OxmlElement('w:ind')
+        pPr.append(ind)
+    ind.set(qn('w:left'), '720')    # 0.5 inch
+    ind.set(qn('w:hanging'), '360') # hanging indent
 
 def heuristic_bullet_pass(items):
     """Post-extraction pass: detect consecutive short sentences that should be bullets.
@@ -376,14 +454,29 @@ def format_document(input_path, output_path):
             
             # ── Explicit bullet marker detection ──
             is_bullet = False
-            if ctype == 'body':
+            list_type = None  # 'list_number', 'list_alpha', 'list_roman', or None
+            if ctype == 'body' and full_text:
+                # Debug: print first char's Unicode codepoint so we can catch any missed bullets
+                first_char = full_text[0]
+                safe_text = full_text[:50].encode('ascii', 'replace').decode('ascii')
+                print(f"  BODY first_char=U+{ord(first_char):04X} text='{safe_text}'")
+                
+                # 1) Check for bullet markers first
                 full_text, runs, is_bullet = strip_bullet_marker(full_text, runs)
                 if is_bullet:
-                    print(f"  BULLET (explicit): '{full_text[:60]}'")
+                    safe_stripped = full_text[:60].encode('ascii', 'replace').decode('ascii')
+                    print(f"    -> BULLET STRIPPED: '{safe_stripped}'")
+                
+                # 2) If not a bullet, check for numbered list prefixes
+                if not is_bullet:
+                    full_text, runs, list_type = strip_list_prefix(full_text, runs)
+                    if list_type:
+                        safe_stripped = full_text[:60].encode('ascii', 'replace').decode('ascii')
+                        print(f"    -> LIST ({list_type}): '{safe_stripped}'")
 
             if safe_images and not full_text: ctype = 'img'
 
-            items.append({'type': ctype, 'text': full_text, 'runs': runs, 'images': safe_images, 'is_bullet': is_bullet})
+            items.append({'type': ctype, 'text': full_text, 'runs': runs, 'images': safe_images, 'is_bullet': is_bullet, 'list_type': list_type})
             
         elif tag == qn('w:tbl'):
             rows = []
@@ -471,9 +564,12 @@ def format_document(input_path, output_path):
             if item['text']:
                 p = doc.add_paragraph()
                 
-                # Apply real Word bullet formatting if detected
+                # Apply real Word list formatting if detected
                 if item.get('is_bullet'):
                     apply_list_bullet(doc, p)
+                    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+                elif item.get('list_type'):
+                    apply_list_style(doc, p, item['list_type'])
                     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
                 else:
                     p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
