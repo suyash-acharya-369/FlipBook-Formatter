@@ -428,18 +428,23 @@
             flex-direction: column;
         }
 
-        /* Preview top bar */
-        .preview-bar {
+        /* Combined sticky header bar: label left, buttons right */
+        .preview-header-bar {
             background: white;
             border-bottom: 1px solid var(--border-light);
-            padding: 0.85rem 1.75rem;
+            padding: 0.9rem 1.5rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 1rem;
             flex-shrink: 0;
+            /* Sticky inside the flex column so it stays at the top while doc-viewport scrolls */
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
-        .preview-bar-left {
+        .preview-header-left {
             display: flex;
             align-items: center;
             gap: 0.6rem;
@@ -450,6 +455,7 @@
             height: 8px;
             border-radius: 50%;
             background: var(--success);
+            flex-shrink: 0;
         }
 
         .preview-bar-title {
@@ -457,12 +463,31 @@
             font-weight: 700;
             letter-spacing: 0.07em;
             text-transform: uppercase;
-            color: var(--text-muted);
+            color: var(--text-primary);
         }
 
         .preview-bar-sub {
-            font-size: 0.72rem;
+            font-size: 0.71rem;
             color: var(--text-muted);
+            margin-top: 1px;
+        }
+
+        .preview-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            flex-shrink: 0;
+        }
+
+        /* Button sizes inside the header */
+        .preview-header-actions .btn-ghost {
+            padding: 0.55rem 1rem;
+            font-size: 0.84rem;
+        }
+
+        .preview-header-actions .btn-download {
+            padding: 0.6rem 1.25rem;
+            font-size: 0.84rem;
         }
 
         /* Gray scroll area */
@@ -911,37 +936,36 @@
 
                 <!-- STATE 3: Preview + Download -->
                 <div id="preview-view">
-                    <!-- Top bar -->
-                    <div class="preview-bar">
-                        <div class="preview-bar-left">
+
+                    <!-- Sticky header: label + action buttons always visible -->
+                    <div class="preview-header-bar">
+                        <div class="preview-header-left">
                             <div class="preview-dot"></div>
-                            <span class="preview-bar-title">Formatted Preview</span>
+                            <div>
+                                <div class="preview-bar-title">Formatted Preview</div>
+                                <div class="preview-bar-sub">Showing first section &mdash; download for the complete
+                                    chapter</div>
+                            </div>
                         </div>
-                        <span class="preview-bar-sub">Showing first section of your document</span>
+                        <div class="preview-header-actions">
+                            <button type="button" class="btn btn-ghost" id="reset-btn">Upload Another</button>
+                            <a href="#" class="btn btn-download" id="download-link">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="white">
+                                    <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+                                </svg>
+                                Download Chapter
+                            </a>
+                        </div>
                     </div>
 
-                    <!-- Gray viewport: white paper centered inside -->
+                    <!-- Gray scrollable viewport with white paper page -->
                     <div class="doc-viewport">
                         <div class="doc-page" id="doc-page">
                             <!-- Filled by JS from /preview endpoint -->
                         </div>
                     </div>
 
-                    <!-- Pinned action bar -->
-                    <div class="preview-action-bar">
-                        <span class="preview-note-bar">Download to view the complete formatted chapter.</span>
-                        <button type="button" class="btn btn-ghost" id="reset-btn"
-                            style="padding:0.65rem 1.25rem;">Upload Another</button>
-                        <a href="#" class="btn btn-download" id="download-link"
-                            style="padding:0.65rem 1.5rem;font-size:0.9rem;">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-                                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
-                            </svg>
-                            Download Chapter
-                        </a>
-                    </div>
-
-                    <div class="error-banner" id="result-error" style="margin:0 1.75rem 1rem;"></div>
+                    <div class="error-banner" id="result-error" style="margin:0 1.5rem 0.75rem;"></div>
                 </div>
 
             </div>
