@@ -22,11 +22,14 @@ WHITE  = RGBColor(255, 255, 255)
 # (numbering depth + bold formatting) so it works for ANY document.
 
 # Explicit bullet marker characters: •, -, *, □, ▪ and Unicode variants
-# \s* = zero or more spaces after the marker (flatten_numbering may leave no gap)
+# Also catches plain 'o' if followed by space OR if directly followed by an uppercase letter (e.g. "oAnd", "oMoreover")
 BULLET_MARKER = re.compile(
-    r'^[\u2022\u2023\u25CF\u25CB\u25AA\u25AB\u25A0\u25A1\u25B8\u25B9'
+    r'^(?:'
+    r'[\u2022\u2023\u25CF\u25CB\u25AA\u25AB\u25A0\u25A1\u25B8\u25B9'
     r'\u2043\u2013\u2014\u2610\u25E6\u25C6\u25C7\uf0b7\uf0a7\uf076'
     r'\uf0d8\u00B7\-\*]\s*'
+    r'|o(?=\s|[A-Z])\s*'
+    r')'
 )
 
 # Numbered list prefix patterns → Word style mapping
