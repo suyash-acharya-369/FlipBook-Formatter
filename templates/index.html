@@ -5,35 +5,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flip-Book Formatter | AISECT Learn</title>
-    <!-- Modern Font for Education Platform -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* AISECT Learn Branding */
             --brand-blue: #0C4395;
-            --brand-blue-hover: #093475;
+            --brand-blue-dark: #083278;
             --brand-orange: #F97316;
-            --brand-orange-hover: #EA580C;
-
-            /* UI Colors */
-            --bg-body: #f1f5f9;
-            --bg-card: #ffffff;
-            --text-heading: #1e293b;
-            /* Very dark slate */
-            --text-body: #475569;
-            /* Medium slate */
-            --text-muted: #64748b;
-            /* Lighter slate */
-            --border: #e2e8f0;
-            --success: #10b981;
-            --error: #ef4444;
-            --highlight-bg: #eff6ff;
-            /* Very light blue */
+            --brand-orange-dark: #C95D0D;
+            --off-white: #F8FAFC;
+            --white: #ffffff;
+            --text-primary: #1E293B;
+            --text-secondary: #475569;
+            --text-muted: #94A3B8;
+            --border-light: #E2E8F0;
+            --border-focus: #93C5FD;
+            --highlight: #EFF6FF;
+            --success: #10B981;
+            --error: #EF4444;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 16px rgba(12, 67, 149, 0.08), 0 2px 6px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 50px -10px rgba(0, 0, 0, 0.12), 0 8px 16px -4px rgba(0, 0, 0, 0.06);
+            --transition: 160ms ease;
         }
 
-        * {
+        *,
+        *::before,
+        *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
@@ -41,771 +40,866 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-body);
+            background: linear-gradient(145deg, #e8eef7 0%, #f1f5f9 60%, #e8eef7 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 2rem;
+            color: var(--text-secondary);
         }
 
-        /* Two-Column Layout Container */
-        .container {
+        /* ─── Outer Card ─── */
+        .card {
             display: flex;
-            flex-direction: row;
             width: 100%;
-            max-width: 1200px;
-            background: var(--bg-card);
+            max-width: 1100px;
+            min-height: 580px;
             border-radius: 20px;
-            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1), 0 10px 15px -3px rgba(0, 0, 0, 0.05);
             overflow: hidden;
-            min-height: 600px;
+            box-shadow: var(--shadow-xl);
         }
 
-        /* -------------------------------------
-           LEFT COLUMN: Branding & Info 
-        -------------------------------------- */
-        .left-col {
-            flex: 1;
-            padding: 4rem;
-            background: linear-gradient(135deg, var(--brand-blue) 0%, #1e3a8a 100%);
-            color: white;
+        /* ─── LEFT PANEL ─── */
+        .info-panel {
+            flex: 0 0 42%;
+            padding: 3.5rem;
+            background: linear-gradient(160deg, #0C4395 0%, #0A3070 55%, #061d4b 100%);
+            color: var(--white);
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
         }
 
-        .logo {
+        /* subtle background pattern */
+        .info-panel::before {
+            content: '';
+            position: absolute;
+            right: -80px;
+            top: -80px;
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.04);
+            pointer-events: none;
+        }
+
+        .info-panel::after {
+            content: '';
+            position: absolute;
+            left: -60px;
+            bottom: -60px;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: rgba(249, 115, 22, 0.07);
+            pointer-events: none;
+        }
+
+        .brand {
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 2.5rem;
-        }
-
-        .logo svg {
-            width: 40px;
-            height: 40px;
-            fill: var(--brand-orange);
-        }
-
-        .logo-text {
-            font-size: 1.5rem;
-            font-weight: 700;
-            letter-spacing: -0.025em;
-        }
-
-        .left-col h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            line-height: 1.1;
-            letter-spacing: -0.025em;
-        }
-
-        .left-col .lead {
-            font-size: 1.125rem;
-            color: rgba(255, 255, 255, 0.85);
             margin-bottom: 3rem;
-            line-height: 1.6;
         }
 
-        .feature-list {
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--brand-orange);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .brand-icon svg {
+            width: 22px;
+            height: 22px;
+            fill: white;
+        }
+
+        .brand-name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            opacity: 0.95;
+        }
+
+        .brand-name span {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            opacity: 0.65;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .info-body {
+            max-width: 420px;
+        }
+
+        .info-body h1 {
+            font-size: 2.4rem;
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            margin-bottom: 1rem;
+        }
+
+        .info-body h1 em {
+            font-style: normal;
+            color: var(--brand-orange);
+        }
+
+        .info-body .desc {
+            font-size: 0.975rem;
+            line-height: 1.7;
+            opacity: 0.78;
+            margin-bottom: 2.25rem;
+            max-width: 380px;
+        }
+
+        .features {
             list-style: none;
             display: flex;
             flex-direction: column;
-            gap: 1.25rem;
+            gap: 1rem;
         }
 
-        .feature-item {
+        .feature {
             display: flex;
             align-items: flex-start;
-            gap: 1rem;
-            font-size: 1rem;
+            gap: 0.75rem;
+            font-size: 0.9rem;
             font-weight: 500;
-            color: rgba(255, 255, 255, 0.95);
+            opacity: 0.9;
             line-height: 1.5;
         }
 
-        .feature-icon {
+        .feat-check {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(249, 115, 22, 0.25);
+            border: 1.5px solid rgba(249, 115, 22, 0.5);
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 24px;
-            height: 24px;
-            background: rgba(249, 115, 22, 0.2);
-            border-radius: 6px;
             flex-shrink: 0;
-            margin-top: 2px;
+            margin-top: 1px;
         }
 
-        .feature-icon svg {
-            width: 14px;
-            height: 14px;
+        .feat-check svg {
+            width: 11px;
+            height: 11px;
             fill: var(--brand-orange);
         }
 
+        .info-footer {
+            font-size: 0.78rem;
+            opacity: 0.45;
+            margin-top: 3rem;
+        }
 
-        /* -------------------------------------
-           RIGHT COLUMN: Tool Interface 
-        -------------------------------------- */
-        .right-col {
+        /* ─── RIGHT PANEL ─── */
+        .tool-panel {
             flex: 1;
-            padding: 4rem;
+            background: var(--white);
+            padding: 3.5rem;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            background: var(--bg-card);
         }
 
-        /* Upload Area */
+        .panel-header {
+            margin-bottom: 2rem;
+        }
+
+        .panel-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.3rem;
+        }
+
+        .panel-header p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* ─── DROP ZONE ─── */
+        #upload-view {}
+
         .drop-zone {
-            border: 2px dashed var(--border);
-            border-radius: 12px;
-            padding: 3.5rem 2rem;
+            border: 2px dashed var(--border-light);
+            border-radius: 14px;
+            padding: 3rem 2rem;
             text-align: center;
-            background: #f8fafc;
+            background: var(--off-white);
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: border-color var(--transition), background var(--transition), box-shadow var(--transition);
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            position: relative;
+            margin-bottom: 1.5rem;
         }
 
-        .drop-zone:hover,
+        .drop-zone:hover {
+            border-color: #93C5FD;
+            background: var(--highlight);
+        }
+
         .drop-zone.dragover {
             border-color: var(--brand-blue);
-            background: var(--highlight-bg);
-            box-shadow: 0 0 0 4px rgba(12, 67, 149, 0.05);
-            /* glow */
+            background: #dbeafe;
+            box-shadow: 0 0 0 5px rgba(12, 67, 149, 0.07);
         }
 
-        .upload-icon {
-            width: 56px;
-            height: 56px;
+        .upload-icon-wrap {
+            width: 68px;
+            height: 68px;
+            border-radius: 16px;
             background: white;
-            border-radius: 50%;
+            border: 1.5px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            margin-bottom: 1.5rem;
-            transition: transform 0.2s ease;
+            margin-bottom: 1.25rem;
+            transition: transform var(--transition), box-shadow var(--transition);
         }
 
-        .drop-zone:hover .upload-icon {
+        .drop-zone:hover .upload-icon-wrap,
+        .drop-zone.dragover .upload-icon-wrap {
             transform: translateY(-4px);
-            box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 20px rgba(12, 67, 149, 0.12);
         }
 
-        .upload-icon svg {
-            width: 24px;
-            height: 24px;
+        .upload-icon-wrap svg {
+            width: 30px;
+            height: 30px;
             fill: var(--brand-blue);
         }
 
-        .drop-title {
-            font-size: 1.25rem;
+        .dz-title {
+            font-size: 1.05rem;
             font-weight: 600;
-            color: var(--text-heading);
-            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            margin-bottom: 0.4rem;
         }
 
-        .drop-subtitle {
-            font-size: 0.95rem;
+        .dz-sub {
+            font-size: 0.85rem;
             color: var(--text-muted);
-            margin-bottom: 2rem;
-            max-width: 280px;
+            max-width: 270px;
             line-height: 1.5;
+            margin-bottom: 1.5rem;
         }
 
         #file-input {
             display: none;
         }
 
-        /* Buttons */
+        /* ─── BUTTONS ─── */
         .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            gap: 8px;
             font-family: inherit;
             font-weight: 600;
-            padding: 0.875rem 2rem;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-decoration: none;
+            font-size: 0.925rem;
             border: none;
+            border-radius: 9px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background var(--transition), box-shadow var(--transition), transform var(--transition);
         }
 
-        .btn-outline {
-            background: transparent;
-            color: var(--text-heading);
-            border: 1px solid var(--border);
-            background: white;
-        }
-
-        .btn-outline:hover {
-            background: #f8fafc;
-            border-color: #cbd5e1;
-        }
-
+        /* Orange – primary action */
         .btn-primary {
-            background: var(--brand-blue);
+            padding: 0.8rem 1.75rem;
+            background: var(--brand-orange);
             color: white;
-        }
-
-        .btn-primary:active {
-            transform: translateY(1px);
+            box-shadow: 0 4px 14px rgba(249, 115, 22, 0.28);
         }
 
         .btn-primary:hover {
-            background: var(--brand-blue-hover);
+            background: var(--brand-orange-dark);
+            box-shadow: 0 6px 18px rgba(249, 115, 22, 0.38);
+            transform: translateY(-1px);
         }
 
-        .btn-orange {
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        /* Blue – submit */
+        .btn-blue {
+            padding: 0.8rem 1.75rem;
+            background: var(--brand-blue);
+            color: white;
+            width: 100%;
+            box-shadow: 0 4px 14px rgba(12, 67, 149, 0.2);
+        }
+
+        .btn-blue:hover {
+            background: var(--brand-blue-dark);
+            box-shadow: 0 6px 18px rgba(12, 67, 149, 0.28);
+            transform: translateY(-1px);
+        }
+
+        .btn-blue:active {
+            transform: translateY(0);
+        }
+
+        /* Ghost – secondary */
+        .btn-ghost {
+            padding: 0.8rem 1.75rem;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1.5px solid var(--border-light);
+        }
+
+        .btn-ghost:hover {
+            background: var(--off-white);
+            border-color: #CBD5E1;
+        }
+
+        /* Download – large orange */
+        .btn-download {
+            padding: 0.9rem 2rem;
             background: var(--brand-orange);
             color: white;
-            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
+            width: 100%;
+            font-size: 1rem;
+            box-shadow: 0 4px 14px rgba(249, 115, 22, 0.28);
         }
 
-        .btn-orange:hover {
-            background: var(--brand-orange-hover);
-            box-shadow: 0 6px 16px rgba(249, 115, 22, 0.35);
+        .btn-download:hover {
+            background: var(--brand-orange-dark);
+            box-shadow: 0 8px 20px rgba(249, 115, 22, 0.38);
+            transform: translateY(-2px);
         }
 
-        /* File Selected State */
+        /* ─── FILE SELECTED ─── */
         .file-status {
             display: none;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 1.25rem;
         }
 
-        .file-info {
+        .file-pill {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: var(--highlight-bg);
-            padding: 1.25rem;
-            border-radius: 8px;
-            border: 1px solid #bfdbfe;
+            background: var(--highlight);
+            border: 1px solid var(--border-focus);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
         }
 
-        .file-name {
-            font-weight: 500;
-            color: var(--text-heading);
+        .file-pill-name {
             display: flex;
             align-items: center;
             gap: 0.75rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--text-primary);
         }
 
-        .file-name svg {
-            width: 24px;
-            height: 24px;
+        .file-pill-name svg {
+            width: 22px;
+            height: 22px;
             fill: var(--brand-blue);
+            flex-shrink: 0;
         }
 
-        .remove-file {
+        .remove-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: transparent;
+            border: none;
             cursor: pointer;
             color: var(--text-muted);
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            transition: all 0.2s;
+            transition: background var(--transition), color var(--transition);
         }
 
-        .remove-file:hover {
-            color: var(--error);
+        .remove-btn:hover {
             background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
         }
 
-        /* Detailed Progress State */
-        .progress-wrapper {
+        .remove-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        /* ─── PROCESSING STATE ─── */
+        .processing-view {
             display: none;
         }
 
-        .progress-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text-heading);
-            margin-bottom: 2rem;
+        .proc-header {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 0.875rem;
+            margin-bottom: 2rem;
         }
 
-        /* Tiny spinner beside title */
-        .spinner-small {
-            width: 24px;
-            height: 24px;
-            border: 3px solid #e2e8f0;
+        .proc-header h2 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .spinner {
+            width: 22px;
+            height: 22px;
+            border: 3px solid var(--border-light);
             border-top-color: var(--brand-blue);
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 0.9s linear infinite;
         }
 
         @keyframes spin {
-            100% {
+            to {
                 transform: rotate(360deg);
             }
         }
 
-        .steps-list {
+        .steps {
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 1.25rem;
         }
 
-        .step-item {
+        .step {
             display: flex;
             align-items: center;
             gap: 1rem;
-            opacity: 0.4;
+            opacity: 0.3;
             transition: opacity 0.3s ease;
         }
 
-        .step-item.active {
+        .step.active,
+        .step.done {
             opacity: 1;
         }
 
-        .step-item.done {
-            opacity: 1;
-        }
-
-        .step-icon {
-            width: 24px;
-            height: 24px;
+        .step-badge {
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
+            flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-            background: var(--border);
-            color: white;
-            transition: all 0.3s ease;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: var(--border-light);
+            color: var(--text-muted);
+            transition: background 0.3s, box-shadow 0.3s;
         }
 
-        .step-item.active .step-icon {
+        .step.active .step-badge {
             background: var(--brand-orange);
-            box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15);
+            color: white;
+            box-shadow: 0 0 0 5px rgba(249, 115, 22, 0.15);
         }
 
-        .step-item.done .step-icon {
+        .step.done .step-badge {
             background: var(--success);
+            color: white;
         }
 
-        .step-item.done .step-icon::after {
-            content: "✓";
+        .step.done .step-badge::after {
+            content: '✓';
         }
 
-        .step-text {
+        .step-label {
+            font-size: 0.925rem;
             font-weight: 500;
-            color: var(--text-heading);
+            color: var(--text-primary);
         }
 
-        /* Result State */
-        .result-wrapper {
+        /* ─── SUCCESS STATE ─── */
+        .success-view {
             display: none;
-            text-align: left;
-            animation: slideIn 0.4s ease forwards;
+            animation: fadeUp 0.4s ease forwards;
         }
 
-        @keyframes slideIn {
+        @keyframes fadeUp {
             from {
                 opacity: 0;
-                transform: translateX(10px);
+                transform: translateY(12px);
             }
 
             to {
                 opacity: 1;
-                transform: translateX(0);
+                transform: translateY(0);
             }
         }
 
-        .success-icon-large {
-            width: 64px;
-            height: 64px;
-            background: rgba(16, 185, 129, 0.15);
+        .success-badge {
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
+            background: rgba(16, 185, 129, 0.12);
+            border: 2px solid rgba(16, 185, 129, 0.25);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
         }
 
-        .success-icon-large svg {
-            width: 32px;
-            height: 32px;
+        .success-badge svg {
+            width: 28px;
+            height: 28px;
             fill: var(--success);
         }
 
-        .result-wrapper h2 {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--text-heading);
-            margin-bottom: 0.5rem;
+        .success-view h2 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 0.4rem;
         }
 
-        .result-wrapper p {
-            color: var(--text-body);
-            font-size: 1.1rem;
-            margin-bottom: 2.5rem;
+        .success-view p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 1.75rem;
+            line-height: 1.6;
         }
 
-        .result-actions {
+        .success-actions {
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: 0.875rem;
         }
 
-        .error-msg {
-            color: var(--error);
-            background: rgba(239, 68, 68, 0.1);
-            padding: 1rem;
-            border-radius: 8px;
-            margin-top: 1.5rem;
+        /* ─── ERROR BANNER ─── */
+        .error-banner {
             display: none;
+            margin-top: 1rem;
+            padding: 0.875rem 1rem;
+            background: rgba(239, 68, 68, 0.07);
+            border-left: 3px solid var(--error);
+            border-radius: 8px;
+            font-size: 0.875rem;
             font-weight: 500;
-            border-left: 4px solid var(--error);
+            color: var(--error);
         }
 
-        /* Responsive Design */
-        @media (max-width: 900px) {
-            .container {
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 860px) {
+            .card {
                 flex-direction: column;
             }
 
-            .left-col {
-                padding: 3rem 2rem;
+            .info-panel {
+                flex: 0 0 auto;
+                padding: 2.5rem;
             }
 
-            .right-col {
-                padding: 3rem 2rem;
+            .info-body h1 {
+                font-size: 1.9rem;
             }
 
-            .left-col h1 {
-                font-size: 2.25rem;
+            .tool-panel {
+                padding: 2.5rem;
             }
         }
-
-        </script>< !-- Only logic below,
-        closing style properly -->
     </style>
 </head>
 
 <body>
 
-    <div class="container">
+    <div class="card">
 
-        <!-- Left Section: Education Platform Info -->
-        <div class="left-col">
-            <div class="logo">
-                <svg viewBox="0 0 24 24">
-                    <path
-                        d="M12 3L1 9L4 10.53V17.5C4 18.88 7.58 20 12 20C16.42 20 20 18.88 20 17.5V10.53L23 9L12 3ZM12 5.51L18.17 8.9L12 12.28L5.83 8.9L12 5.51ZM18 17.5C18 18.05 15.31 18.5 12 18.5C8.69 18.5 6 18.05 6 17.5V11.62L12 14.9L18 11.62V17.5Z" />
-                </svg>
-                <div class="logo-text">AISECT Learn</div>
-            </div>
-
-            <h1>Flip-Book<br>Formatter</h1>
-            <p class="lead">Internal tool for preparing raw course materials into beautifully structured, flip-book
-                ready digital chapters.</p>
-
-            <ul class="feature-list">
-                <li class="feature-item">
-                    <div class="feature-icon"><svg viewBox="0 0 24 24">
-                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                        </svg></div>
-                    Fix heading numbering automatically
-                </li>
-                <li class="feature-item">
-                    <div class="feature-icon"><svg viewBox="0 0 24 24">
-                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                        </svg></div>
-                    Convert manual bullets into structured lists
-                </li>
-                <li class="feature-item">
-                    <div class="feature-icon"><svg viewBox="0 0 24 24">
-                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                        </svg></div>
-                    Clean Word formatting
-                </li>
-                <li class="feature-item">
-                    <div class="feature-icon"><svg viewBox="0 0 24 24">
-                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                        </svg></div>
-                    Export chapters ready for flip-book publishing
-                </li>
-            </ul>
-        </div>
-
-        <!-- Right Section: Tool Interface -->
-        <div class="right-col">
-
-            <!-- Default Upload View -->
-            <div id="upload-view">
-                <div class="drop-zone" id="drop-zone">
-                    <div class="upload-icon">
+        <!-- ── LEFT: Info & Branding ── -->
+        <div class="info-panel">
+            <div>
+                <div class="brand">
+                    <div class="brand-icon">
                         <svg viewBox="0 0 24 24">
                             <path
-                                d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.36 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
+                                d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6L23 9 12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z" />
                         </svg>
                     </div>
-                    <div class="drop-title">Upload raw course chapter (.DOCX)</div>
-                    <div class="drop-subtitle">The system will automatically structure headings, bullets, and numbering.
+                    <div class="brand-name">
+                        AISECT Learn
+                        <span>Internal Tool</span>
                     </div>
-
-                    <button type="button" class="btn btn-outline"
-                        onclick="document.getElementById('file-input').click()">Browse Files</button>
-                    <input type="file" id="file-input" name="file" accept=".docx">
                 </div>
 
+                <div class="info-body">
+                    <h1>Flip-Book<br><em>Formatter</em></h1>
+                    <p class="desc">
+                        Convert raw course chapter documents into perfectly structured, flip-book ready chapters —
+                        automatically.
+                    </p>
+
+                    <ul class="features">
+                        <li class="feature">
+                            <span class="feat-check"><svg viewBox="0 0 24 24">
+                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                                </svg></span>
+                            Fix heading numbering automatically
+                        </li>
+                        <li class="feature">
+                            <span class="feat-check"><svg viewBox="0 0 24 24">
+                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                                </svg></span>
+                            Convert manual bullets into structured lists
+                        </li>
+                        <li class="feature">
+                            <span class="feat-check"><svg viewBox="0 0 24 24">
+                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                                </svg></span>
+                            Clean Word formatting &amp; styles
+                        </li>
+                        <li class="feature">
+                            <span class="feat-check"><svg viewBox="0 0 24 24">
+                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                                </svg></span>
+                            Export chapters ready for publishing
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="info-footer">For content team use only &bull; AISECT Learn Platform</div>
+        </div>
+
+        <!-- ── RIGHT: Tool Interface ── -->
+        <div class="tool-panel">
+
+            <!-- IDLE: Upload -->
+            <div id="upload-view">
+                <div class="panel-header">
+                    <h2>Format a Chapter</h2>
+                    <p>Upload a Word document to begin formatting</p>
+                </div>
+
+                <div class="drop-zone" id="drop-zone">
+                    <div class="upload-icon-wrap">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
+                        </svg>
+                    </div>
+                    <div class="dz-title">Upload raw course chapter (.DOCX)</div>
+                    <div class="dz-sub">The system will automatically structure headings, bullets, and numbering.</div>
+                    <button type="button" class="btn btn-primary"
+                        onclick="document.getElementById('file-input').click()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                            <path
+                                d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-1 8h-3v3h-2v-3h-3v-2h3v-3h2v3h3v2z" />
+                        </svg>
+                        Browse Files
+                    </button>
+                    <input type="file" id="file-input" accept=".docx">
+                </div>
+
+                <!-- After file selected -->
                 <div class="file-status" id="file-status">
-                    <div class="file-info">
-                        <div class="file-name">
+                    <div class="file-pill">
+                        <div class="file-pill-name">
                             <svg viewBox="0 0 24 24">
                                 <path
-                                    d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
+                                    d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
                             </svg>
-                            <span id="file-name-text">No file selected</span>
+                            <span id="file-name-text">document.docx</span>
                         </div>
-                        <div class="remove-file" id="remove-file" title="Remove file">
-                            <svg width="20" height="20" viewBox="0 0 24 24">
+                        <button class="remove-btn" id="remove-file" title="Remove">
+                            <svg viewBox="0 0 24 24">
                                 <path
                                     d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
                             </svg>
-                        </div>
+                        </button>
                     </div>
-                    <button type="button" class="btn btn-primary" id="submit-btn" onclick="submitDoc(event)"
-                        style="width: 100%;">Process Document</button>
+                    <button type="button" class="btn btn-blue" id="submit-btn" onclick="submitDoc(event)">
+                        Process Document
+                    </button>
                 </div>
 
-                <div class="error-msg" id="error-msg"></div>
+                <div class="error-banner" id="upload-error"></div>
             </div>
 
-            <!-- Detailed Progress View -->
-            <div class="progress-wrapper" id="progress-wrapper">
-                <div class="progress-title">
-                    Processing
-                    <div class="spinner-small"></div>
+            <!-- PROCESSING -->
+            <div class="processing-view" id="processing-view">
+                <div class="proc-header">
+                    <div class="spinner"></div>
+                    <h2>Processing document…</h2>
                 </div>
-
-                <div class="steps-list" id="steps-list">
-                    <div class="step-item active" id="step-1">
-                        <div class="step-icon">1</div>
-                        <div class="step-text">Analyzing document structure</div>
+                <div class="steps">
+                    <div class="step active" id="step-1">
+                        <div class="step-badge">1</div>
+                        <div class="step-label">Analyzing document structure</div>
                     </div>
-                    <div class="step-item" id="step-2">
-                        <div class="step-icon">2</div>
-                        <div class="step-text">Fixing headings and numbering</div>
+                    <div class="step" id="step-2">
+                        <div class="step-badge">2</div>
+                        <div class="step-label">Fixing headings and numbering</div>
                     </div>
-                    <div class="step-item" id="step-3">
-                        <div class="step-icon">3</div>
-                        <div class="step-text">Converting bullet lists</div>
+                    <div class="step" id="step-3">
+                        <div class="step-badge">3</div>
+                        <div class="step-label">Converting bullet lists</div>
                     </div>
-                    <div class="step-item" id="step-4">
-                        <div class="step-icon">4</div>
-                        <div class="step-text">Generating formatted chapter</div>
+                    <div class="step" id="step-4">
+                        <div class="step-badge">4</div>
+                        <div class="step-label">Preparing formatted chapter</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Success Result View -->
-            <div class="result-wrapper" id="result-wrapper">
-                <div class="success-icon-large">
+            <!-- SUCCESS -->
+            <div class="success-view" id="success-view">
+                <div class="success-badge">
                     <svg viewBox="0 0 24 24">
                         <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                     </svg>
                 </div>
                 <h2>Your chapter is ready.</h2>
-                <p>The document has been formatted according to the official AISECT Learn guidelines.</p>
-
-                <div class="result-actions">
-                    <a href="#" class="btn btn-orange" id="download-link">Download Formatted Chapter</a>
-                    <button type="button" class="btn btn-outline" id="reset-btn">Format another file</button>
+                <p>The document has been formatted according to AISECT Learn guidelines and is ready for flip-book
+                    publishing.</p>
+                <div class="success-actions">
+                    <a href="#" class="btn btn-download" id="download-link">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+                        </svg>
+                        Download Formatted Chapter
+                    </a>
+                    <button type="button" class="btn btn-ghost" id="reset-btn">Upload Another File</button>
                 </div>
-
-                <!-- Used if subsequent downloads error -->
-                <div class="error-msg" id="result-error-msg"></div>
+                <div class="error-banner" id="result-error"></div>
             </div>
 
-        </div>
-
-    </div>
+        </div><!-- /tool-panel -->
+    </div><!-- /card -->
 
     <script>
         const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('file-input');
         const fileStatus = document.getElementById('file-status');
-        const fileNameDisplay = document.getElementById('file-name-text');
-        const removeFileBtn = document.getElementById('remove-file');
-
+        const fileNameEl = document.getElementById('file-name-text');
+        const removeBtn = document.getElementById('remove-file');
         const uploadView = document.getElementById('upload-view');
-        const errorMsg = document.getElementById('error-msg');
-
-        const progressWrapper = document.getElementById('progress-wrapper');
-        const stepItems = [
-            document.getElementById('step-1'),
-            document.getElementById('step-2'),
-            document.getElementById('step-3'),
-            document.getElementById('step-4')
-        ];
-
-        const resultWrapper = document.getElementById('result-wrapper');
-        const downloadLink = document.getElementById('download-link');
+        const uploadErr = document.getElementById('upload-error');
+        const procView = document.getElementById('processing-view');
+        const succView = document.getElementById('success-view');
+        const dlLink = document.getElementById('download-link');
         const resetBtn = document.getElementById('reset-btn');
+        const steps = [1, 2, 3, 4].map(i => document.getElementById('step-' + i));
 
         let selectedFile = null;
-        let progressTimeout1, progressTimeout2, progressTimeout3;
+        let timers = [];
 
-        // Drag events
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, preventDefaults, false);
-            document.body.addEventListener(eventName, preventDefaults, false);
+        /* ── Drag & Drop ── */
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => {
+            dropZone.addEventListener(e, p => { p.preventDefault(); p.stopPropagation(); });
+            document.body.addEventListener(e, p => { p.preventDefault(); p.stopPropagation(); });
         });
+        ['dragenter', 'dragover'].forEach(e => dropZone.addEventListener(e, () => dropZone.classList.add('dragover')));
+        ['dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, () => dropZone.classList.remove('dragover')));
+        dropZone.addEventListener('drop', e => pick(e.dataTransfer.files));
+        fileInput.addEventListener('change', function () { pick(this.files); });
 
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
-        });
-
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
-        });
-
-        dropZone.addEventListener('drop', (e) => handleFiles(e.dataTransfer.files), false);
-        fileInput.addEventListener('change', function () { handleFiles(this.files); });
-
-        function handleFiles(files) {
-            if (files.length > 0) {
-                const file = files[0];
-                if (!file.name.endsWith('.docx')) {
-                    showError('Please select a valid .docx file', errorMsg);
-                    return;
-                }
-
-                selectedFile = file;
-                fileNameDisplay.textContent = file.name;
-
-                dropZone.style.display = 'none';
-                fileStatus.style.display = 'flex';
-                hideError(errorMsg);
+        function pick(files) {
+            if (!files || !files.length) return;
+            const f = files[0];
+            if (!f.name.toLowerCase().endsWith('.docx')) {
+                showErr(uploadErr, 'Please select a valid .docx file.');
+                return;
             }
+            selectedFile = f;
+            fileNameEl.textContent = f.name;
+            dropZone.style.display = 'none';
+            fileStatus.style.display = 'flex';
+            hideErr(uploadErr);
         }
 
-        removeFileBtn.addEventListener('click', resetFormUI);
+        removeBtn.addEventListener('click', resetUI);
 
-        function resetProgressSteps() {
-            stepItems.forEach(step => {
-                step.className = 'step-item'; // Reset classes
-            });
-            stepItems[0].classList.add('active'); // Start at 1 again
-        }
-
-        function simulateProgress() {
-            // Fake progression timing since we are waiting for a single async upload call 
-            // In a real socket/SSE setup, the backend would stream these state changes.
-            progressTimeout1 = setTimeout(() => {
-                stepItems[0].className = 'step-item done';
-                stepItems[1].className = 'step-item active';
-            }, 800);
-
-            progressTimeout2 = setTimeout(() => {
-                stepItems[1].className = 'step-item done';
-                stepItems[2].className = 'step-item active';
-            }, 1800);
-
-            progressTimeout3 = setTimeout(() => {
-                stepItems[2].className = 'step-item done';
-                stepItems[3].className = 'step-item active';
-            }, 3000);
-        }
-
-        function cancelProgressSimulation() {
-            clearTimeout(progressTimeout1);
-            clearTimeout(progressTimeout2);
-            clearTimeout(progressTimeout3);
-        }
-
+        /* ── Submit ── */
         async function submitDoc(e) {
-            if (e) e.preventDefault();
+            e && e.preventDefault();
             if (!selectedFile) return;
 
             uploadView.style.display = 'none';
-            progressWrapper.style.display = 'block';
+            procView.style.display = 'block';
+            resetSteps();
+            animateSteps();
 
-            resetProgressSteps();
-            simulateProgress();
-
-            const formData = new FormData();
-            formData.append('file', selectedFile);
+            const fd = new FormData();
+            fd.append('file', selectedFile);
 
             try {
-                const response = await fetch('/upload', { method: 'POST', body: formData });
-                let result;
+                const res = await fetch('/upload', { method: 'POST', body: fd });
+                const data = res.headers.get('content-type')?.includes('json')
+                    ? await res.json()
+                    : await res.text().then(t => { throw new Error(t || res.statusText); });
 
-                if (response.headers.get('content-type')?.includes('application/json')) {
-                    result = await response.json();
-                } else {
-                    throw new Error(`Server error: ${response.statusText}`);
-                }
+                if (!res.ok || !data.success) throw new Error(data.error || 'Formatting failed.');
 
-                if (response.ok && result.success) {
-                    cancelProgressSimulation();
-                    // Force complete all steps instantly
-                    stepItems.forEach(step => step.className = 'step-item done');
-
-                    setTimeout(() => {
-                        progressWrapper.style.display = 'none';
-                        resultWrapper.style.display = 'block';
-                        downloadLink.href = `/download/${result.job_id}/${encodeURIComponent(result.filename)}`;
-                    }, 500); // short delay so user sees "done" state
-                } else {
-                    throw new Error(result.error || 'Formatting failed.');
-                }
+                clearTimers();
+                steps.forEach(s => s.className = 'step done');
+                setTimeout(() => {
+                    procView.style.display = 'none';
+                    succView.style.display = 'block';
+                    dlLink.href = `/download/${data.job_id}/${encodeURIComponent(data.filename)}`;
+                }, 400);
             } catch (err) {
-                cancelProgressSimulation();
-                progressWrapper.style.display = 'none';
+                clearTimers();
+                procView.style.display = 'none';
                 uploadView.style.display = 'block';
-                showError(err.message, errorMsg);
+                dropZone.style.display = 'flex';
+                fileStatus.style.display = 'flex';
+                showErr(uploadErr, err.message);
             }
         }
 
-        resetBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            resetFormUI();
-        });
+        resetBtn.addEventListener('click', e => { e.preventDefault(); resetUI(); });
 
-        function resetFormUI() {
+        function resetUI() {
             selectedFile = null;
             fileInput.value = '';
             uploadView.style.display = 'block';
+            procView.style.display = 'none';
+            succView.style.display = 'none';
             dropZone.style.display = 'flex';
             fileStatus.style.display = 'none';
-            resultWrapper.style.display = 'none';
-            progressWrapper.style.display = 'none';
-            document.getElementById('result-error-msg').style.display = 'none';
-            hideError(errorMsg);
+            hideErr(uploadErr);
+            hideErr(document.getElementById('result-error'));
         }
 
-        function showError(msg, el) {
-            el.textContent = msg;
-            el.style.display = 'block';
+        function resetSteps() {
+            steps.forEach((s, i) => { s.className = i === 0 ? 'step active' : 'step'; });
         }
 
-        function hideError(el) {
-            el.style.display = 'none';
+        function animateSteps() {
+            [800, 1800, 3200].forEach((delay, i) => {
+                timers.push(setTimeout(() => {
+                    steps[i].className = 'step done';
+                    steps[i + 1].className = 'step active';
+                }, delay));
+            });
         }
+
+        function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+        function showErr(el, msg) { el.textContent = msg; el.style.display = 'block'; }
+        function hideErr(el) { if (el) el.style.display = 'none'; }
     </script>
 </body>
 
