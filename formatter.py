@@ -44,6 +44,9 @@ LIST_PREFIX_PATTERNS = [
     (re.compile(r'^\((\d+)\)\s*'),         'list_number'),
     (re.compile(r'^(\d+)\)\s*'),           'list_number'),
     (re.compile(r'^(\d+)\.\s*'),           'list_number'),
+    # Bare numeric: "20List" or "20 List" (from flatten_numbering with no separator)
+    (re.compile(r'^(\d+)\s+'),             'list_number'),   # number + space
+    (re.compile(r'^(\d+)(?=[A-Z])'),       'list_number'),   # number directly followed by uppercase
 ]
 
 # Map list types to Word styles
@@ -128,6 +131,35 @@ def is_shape_content(elem):
     if elem.findall('.//' + WPC_WPC): return True
     return False
 
+def _set_para_mark_font(pPr, font_name, size_pt):
+    """Set the paragraph mark font (rPr inside pPr) which controls list marker/number appearance."""
+    rPr = pPr.find(qn('w:rPr'))
+    if rPr is None:
+        rPr = OxmlElement('w:rPr')
+        pPr.append(rPr)
+    
+    # Set font family
+    rFonts = rPr.find(qn('w:rFonts'))
+    if rFonts is None:
+        rFonts = OxmlElement('w:rFonts')
+        rPr.append(rFonts)
+    rFonts.set(qn('w:ascii'), font_name)
+    rFonts.set(qn('w:hAnsi'), font_name)
+    rFonts.set(qn('w:cs'), font_name)
+    
+    # Set font size (in half-points)
+    sz = rPr.find(qn('w:sz'))
+    if sz is None:
+        sz = OxmlElement('w:sz')
+        rPr.append(sz)
+    sz.set(qn('w:val'), str(size_pt * 2))  # Word uses half-points
+    
+    szCs = rPr.find(qn('w:szCs'))
+    if szCs is None:
+        szCs = OxmlElement('w:szCs')
+        rPr.append(szCs)
+    szCs.set(qn('w:val'), str(size_pt * 2))
+
 def apply_list_bullet(doc, para):
     """Apply real MS Word 'List Bullet' paragraph style.
     Never inserts bullet characters as text — uses proper Word list formatting."""
@@ -153,6 +185,10 @@ def apply_list_bullet(doc, para):
         pPr.append(ind)
     ind.set(qn('w:left'), '720')    # 0.5 inch
     ind.set(qn('w:hanging'), '360') # hanging indent for bullet symbol
+    
+    # Override paragraph-level font to Times New Roman 16pt
+    # This controls the bullet/number marker font
+    _set_para_mark_font(pPr, 'Times New Roman', 16)
 
 def strip_bullet_marker(full_text, runs):
     """Remove explicit bullet marker character from text and runs.
@@ -211,17 +247,24 @@ def strip_list_prefix(full_text, runs):
     
     return full_text, runs, None
 
-def apply_list_style(doc, para, list_type):
-    """Apply a real Word numbered list style to a paragraph."""
-    style_name = LIST_STYLE_MAP.get(list_type, 'List Number')
-    try:
-        para.style = doc.styles[style_name]
-    except KeyError:
-        # Fallback: try 'List Number' or manual XML
-        try:
-            para.style = doc.styles['List Number']
-        except KeyError:
-            pass
+def apply_list_style(doc, para, num_id):
+    """Apply a real Word numbered list with a specific numId to a paragraph."""
+    # We no longer rely on built-in styles; we apply formatting directly
+    pPr = para._p.get_or_add_pPr()
+    
+    # Remove old numPr
+    old_numPr = pPr.find(qn('w:numPr'))
+    if old_numPr is not None:
+        pPr.remove(old_numPr)
+        
+    numPr = OxmlElement('w:numPr')
+    ilvl = OxmlElement('w:ilvl')
+    ilvl.set(qn('w:val'), '0')
+    numId_elem = OxmlElement('w:numId')
+    numId_elem.set(qn('w:val'), str(num_id))
+    numPr.append(ilvl)
+    numPr.append(numId_elem)
+    pPr.insert(0, numPr)
     
     # Set indent for proper list alignment
     pPr = para._p.get_or_add_pPr()
@@ -231,6 +274,241 @@ def apply_list_style(doc, para, list_type):
         pPr.append(ind)
     ind.set(qn('w:left'), '720')    # 0.5 inch
     ind.set(qn('w:hanging'), '360') # hanging indent
+    
+    # Override paragraph-level font to Times New Roman 16pt
+    _set_para_mark_font(pPr, 'Times New Roman', 16)
+
+def setup_multilevel_heading_numbering(doc):
+    """Create a multilevel list numbering definition that links Heading 1-4 to auto-numbering.
+    Format: 1 → 1.1 → 1.1.1 → 1.1.1.1"""
+    
+    # Access or create the numbering part
+    numbering_part = doc.part.numbering_part
+    numbering_elem = numbering_part._element
+    
+    # Define the abstract numbering with 4 levels
+    abstractNum = OxmlElement('w:abstractNum')
+    abstractNum.set(qn('w:abstractNumId'), '10')  # Use ID 10 to avoid conflicts
+    
+    # Multi-level type
+    multiLevelType = OxmlElement('w:multiLevelType')
+    multiLevelType.set(qn('w:val'), 'multilevel')
+    abstractNum.append(multiLevelType)
+    
+    # Level formats: 1, 1.1, 1.1.1, 1.1.1.1
+    level_formats = [
+        '%1',           # Level 0: "1"
+        '%1.%2',        # Level 1: "1.1" 
+        '%1.%2.%3',     # Level 2: "1.1.1"
+        '%1.%2.%3.%4',  # Level 3: "1.1.1.1"
+    ]
+    
+    heading_styles = ['Heading1', 'Heading2', 'Heading3', 'Heading4']
+    # Per-level formatting: (size_pt, color_hex, bold)
+    level_formatting = [
+        (35, 'FFFFFF', True),    # H1: 35pt, white, bold
+        (30, 'E36C0A', True),    # H2: 30pt, orange, bold
+        (20, '124395', True),    # H3: 20pt, blue, bold
+        (18, '1D1D1B', True),    # H4: 18pt, black, bold
+    ]
+    
+    for i in range(4):
+        lvl = OxmlElement('w:lvl')
+        lvl.set(qn('w:ilvl'), str(i))
+        
+        start = OxmlElement('w:start')
+        start.set(qn('w:val'), '1')
+        lvl.append(start)
+        
+        numFmt = OxmlElement('w:numFmt')
+        numFmt.set(qn('w:val'), 'decimal')
+        lvl.append(numFmt)
+        
+        # Link to heading style
+        pStyle = OxmlElement('w:pStyle')
+        pStyle.set(qn('w:val'), heading_styles[i])
+        lvl.append(pStyle)
+        
+        lvlText = OxmlElement('w:lvlText')
+        lvlText.set(qn('w:val'), level_formats[i])
+        lvl.append(lvlText)
+        
+        lvlJc = OxmlElement('w:lvlJc')
+        lvlJc.set(qn('w:val'), 'left')
+        lvl.append(lvlJc)
+        
+        # Paragraph properties (Indentation & Tabs) to align wrapped text
+        # If the space is smaller than the number width, Word pushes text to the NEXT default tab stop (creating a huge gap).
+        # We start all numbers at 0" (left = hanging) and give them enough space to fit the text.
+        if i == 0:    # H1: 35pt, e.g. "1" -> 0.5" space
+            indent_left = "720"
+            indent_hanging = "720"
+        elif i == 1:  # H2: 30pt, e.g. "1.13" -> 0.75" space
+            indent_left = "1080"
+            indent_hanging = "1080"
+        elif i == 2:  # H3: 20pt, e.g. "1.13.1" -> 0.75" space
+            indent_left = "1080"
+            indent_hanging = "1080"
+        else:         # H4: 18pt, e.g. "1.13.1.1" -> 1.0" space
+            indent_left = "1440"
+            indent_hanging = "1440"
+            
+        pPr = OxmlElement('w:pPr')
+        
+        # Tab stop at the text indent position
+        tabs = OxmlElement('w:tabs')
+        tab = OxmlElement('w:tab')
+        tab.set(qn('w:val'), 'num')
+        tab.set(qn('w:pos'), indent_left)
+        tabs.append(tab)
+        pPr.append(tabs)
+        
+        # Indent
+        ind = OxmlElement('w:ind')
+        ind.set(qn('w:left'), indent_left)
+        ind.set(qn('w:hanging'), indent_hanging)
+        pPr.append(ind)
+        
+        lvl.append(pPr)
+        
+        # Set number formatting to match heading text: font, size, color, bold
+        size_pt, color_hex, is_bold = level_formatting[i]
+        rPr = OxmlElement('w:rPr')
+        
+        # Font family
+        rFonts = OxmlElement('w:rFonts')
+        rFonts.set(qn('w:ascii'), 'Times New Roman')
+        rFonts.set(qn('w:hAnsi'), 'Times New Roman')
+        rFonts.set(qn('w:cs'), 'Times New Roman')
+        rFonts.set(qn('w:hint'), 'default')
+        rPr.append(rFonts)
+        
+        # Font size (in half-points)
+        sz = OxmlElement('w:sz')
+        sz.set(qn('w:val'), str(size_pt * 2))
+        rPr.append(sz)
+        szCs = OxmlElement('w:szCs')
+        szCs.set(qn('w:val'), str(size_pt * 2))
+        rPr.append(szCs)
+        
+        # Bold
+        if is_bold:
+            b = OxmlElement('w:b')
+            rPr.append(b)
+            bCs = OxmlElement('w:bCs')
+            rPr.append(bCs)
+        
+        # Color
+        color_elem = OxmlElement('w:color')
+        color_elem.set(qn('w:val'), color_hex)
+        rPr.append(color_elem)
+        
+        lvl.append(rPr)
+        
+        abstractNum.append(lvl)
+    
+        abstractNum.append(lvl)
+    
+    # Insert abstractNum before any existing w:num elements
+    nums = numbering_elem.findall(qn('w:num'))
+    if nums:
+        nums[0].addprevious(abstractNum)
+    else:
+        numbering_elem.append(abstractNum)
+    
+    # Create the num element referencing abstractNumId=10
+    num = OxmlElement('w:num')
+    num.set(qn('w:numId'), '10')
+    abstractNumId_elem = OxmlElement('w:abstractNumId')
+    abstractNumId_elem.set(qn('w:val'), '10')
+    num.append(abstractNumId_elem)
+    numbering_elem.append(num)
+
+def setup_body_lists(doc):
+    """Create abstract numbering definitions for body lists: numeric, alpha, roman.
+    Ids: 20=numeric, 21=alpha, 22=roman."""
+    numbering_part = doc.part.numbering_part
+    numbering_elem = numbering_part._element
+    
+    formats = [
+        ('20', 'decimal', '%1.', 'list_number'),   # 1., 2., 3.
+        ('21', 'lowerLetter', '%1)', 'list_alpha'),# a), b), c)
+        ('22', 'lowerRoman', '%1.', 'list_roman'), # i., ii., iii.
+    ]
+    
+    for abs_id, num_fmt, lvl_text, list_type in formats:
+        abstractNum = OxmlElement('w:abstractNum')
+        abstractNum.set(qn('w:abstractNumId'), abs_id)
+        
+        multiLevelType = OxmlElement('w:multiLevelType')
+        multiLevelType.set(qn('w:val'), 'hybridMultilevel')
+        abstractNum.append(multiLevelType)
+        
+        lvl = OxmlElement('w:lvl')
+        lvl.set(qn('w:ilvl'), '0')
+        
+        start = OxmlElement('w:start')
+        start.set(qn('w:val'), '1')
+        lvl.append(start)
+        
+        numFmt = OxmlElement('w:numFmt')
+        numFmt.set(qn('w:val'), num_fmt)
+        lvl.append(numFmt)
+        
+        lvlText = OxmlElement('w:lvlText')
+        lvlText.set(qn('w:val'), lvl_text)
+        lvl.append(lvlText)
+        
+        lvlJc = OxmlElement('w:lvlJc')
+        lvlJc.set(qn('w:val'), 'left')
+        lvl.append(lvlJc)
+        
+        rPr = OxmlElement('w:rPr')
+        rFonts = OxmlElement('w:rFonts')
+        rFonts.set(qn('w:ascii'), 'Times New Roman')
+        rFonts.set(qn('w:hAnsi'), 'Times New Roman')
+        rFonts.set(qn('w:cs'), 'Times New Roman')
+        rPr.append(rFonts)
+        sz = OxmlElement('w:sz')
+        sz.set(qn('w:val'), '32') # 16pt
+        rPr.append(sz)
+        szCs = OxmlElement('w:szCs')
+        szCs.set(qn('w:val'), '32')
+        rPr.append(szCs)
+        lvl.append(rPr)
+        
+        pPr = OxmlElement('w:pPr')
+        ind = OxmlElement('w:ind')
+        ind.set(qn('w:left'), '720')
+        ind.set(qn('w:hanging'), '360')
+        pPr.append(ind)
+        lvl.append(pPr)
+        
+        abstractNum.append(lvl)
+        
+        nums = numbering_elem.findall(qn('w:num'))
+        if nums:
+            nums[0].addprevious(abstractNum)
+        else:
+            numbering_elem.append(abstractNum)
+
+def _link_heading_to_numbering(para, heading_level):
+    """Link a heading paragraph to the multilevel numbering list (numId=10)."""
+    pPr = para._p.get_or_add_pPr()
+    
+    # Remove any existing numPr
+    old_numPr = pPr.find(qn('w:numPr'))
+    if old_numPr is not None:
+        pPr.remove(old_numPr)
+    
+    numPr = OxmlElement('w:numPr')
+    ilvl = OxmlElement('w:ilvl')
+    ilvl.set(qn('w:val'), str(heading_level - 1))  # heading_level 1-based → ilvl 0-based
+    numId = OxmlElement('w:numId')
+    numId.set(qn('w:val'), '10')  # References the multilevel list we created
+    numPr.append(ilvl)
+    numPr.append(numId)
+    pPr.insert(0, numPr)
 
 def heuristic_bullet_pass(items):
     """Post-extraction pass: detect consecutive short sentences that should be bullets.
@@ -437,16 +715,43 @@ def format_document(input_path, output_path):
                 ctype = 'h1'
                 first_text_found = True
             else:
-                # ── Simple numbering-only heading detection ──
-                match_3 = re.match(r'^(\d+\.\d+\.\d+)', full_text)  # e.g. 1.1.1
-                match_2 = re.match(r'^(\d+\.\d+)(?!\.\d)', full_text)  # e.g. 1.1 (but NOT 1.1.1)
+                # ── Hierarchical heading detection: count segments ──
+                # 1.1.1.1 = h4, 1.1.1 = h3, 1.1 = h2, standalone chapter = h1
+                heading_match = re.match(r'^(\d+(?:\.\d+)*)\s*(.*)', full_text)
+                if heading_match:
+                    num_part = heading_match.group(1)
+                    segments = num_part.split('.')
+                    seg_count = len(segments)
+                    
+                    if seg_count >= 2:  # X.Y, X.Y.Z, X.Y.Z.W
+                        if seg_count == 2:
+                            ctype = 'h2'
+                        elif seg_count == 3:
+                            ctype = 'h3'
+                        else:  # 4+
+                            ctype = 'h4'
+                        
+                        # Strip the numeric prefix from text
+                        stripped_title = heading_match.group(2).strip()
+                        if stripped_title:
+                            full_text = stripped_title
+                            # Also strip from runs
+                            prefix_len = len(num_part) + (len(heading_match.group(0)) - len(heading_match.group(1)) - len(heading_match.group(2)))
+                            chars_to_strip = len(heading_match.group(0)) - len(heading_match.group(2))
+                            for rc in runs:
+                                if chars_to_strip <= 0: break
+                                if len(rc['text']) <= chars_to_strip:
+                                    chars_to_strip -= len(rc['text'])
+                                    rc['text'] = ''
+                                else:
+                                    rc['text'] = rc['text'][chars_to_strip:].lstrip()
+                                    chars_to_strip = 0
+                            runs = [rc for rc in runs if rc['text']]
                 
-                if match_3:
-                    ctype = 'h3'  # Blue heading (e.g. 1.1.1, 1.3.2)
-                elif match_2:
-                    ctype = 'h2'  # Orange heading (e.g. 1.1, 2.1)
-                elif lower_text.strip() in ('check your progress', 'summary', 'check your progress:', 'summary:'):
-                    ctype = 'h2'  # Orange heading, auto-auto spacing, 1.05 multiple
+                # Special keywords as H2 (no numbering)
+                h2_keywords = ('check your progress', 'summary', 'check your progress:', 'summary:', 'objectives', 'objectives:', 'ojectives', 'ojectives:')
+                if ctype == 'body' and lower_text.strip() in h2_keywords:
+                    ctype = 'h2_no_num'  # h2 formatting, but no heading numbering
                 
                 # Figure captions — only when text starts with "fig" keyword
                 if ctype == 'body' and lower_text.startswith('fig'):
@@ -505,9 +810,24 @@ def format_document(input_path, output_path):
         for child in list(hf._element): hf._element.remove(child)
         etree.SubElement(hf._element, qn('w:p'))
 
+    # Set up multilevel heading numbering (links Heading 1-4 to auto-numbering)
+    setup_multilevel_heading_numbering(doc)
+    setup_body_lists(doc)
+
     print("PHASE 3: Rebuilding...")
+    
+    # Track list state to handle list restarting
+    current_list_type = None
+    current_num_id = None
+    next_num_id_counter = 11  # 10 is used by headings
+    
     for item in items:
         ct = item['type']
+        
+        # Reset lists on headings
+        if ct in ('h1', 'h2', 'h3', 'h4', 'h2_no_num'):
+            current_list_type = None
+            current_num_id = None
         
         if ct == 'h1':
             p = doc.add_paragraph()
@@ -521,24 +841,42 @@ def format_document(input_path, output_path):
                 add_run(p, part_text, 'Montserrat', 35, bold=True, color=WHITE)
             set_spacing(p, auto_before=True, auto_after=True, line_mult=1.05)
             
-        elif ct in ['h2', 'h3', 'h4']:
+        elif ct in ['h2', 'h3', 'h4', 'h2_no_num']:
+            # Apply real Word Heading style for auto-numbering
+            actual_level = 'h2' if ct == 'h2_no_num' else ct
+            heading_level = {'h2': 2, 'h3': 3, 'h4': 4}[actual_level]
+            style_name = f'Heading {heading_level}'
+            
             p = doc.add_paragraph()
+            try:
+                p.style = doc.styles[style_name]
+            except KeyError:
+                pass
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-            color = ORANGE if ct=='h2' else (BLUE if ct=='h3' else BLACK)
-            size = 30 if ct=='h2' else (20 if ct=='h3' else 18)
+            
+            color = ORANGE if actual_level=='h2' else (BLUE if actual_level=='h3' else BLACK)
+            size = 30 if actual_level=='h2' else (20 if actual_level=='h3' else 18)
             
             fmt_text = item['text'].title()
             
             add_run(p, fmt_text, 'Times New Roman', size, bold=True, color=color)
             set_spacing(p, auto_before=True, auto_after=True, line_mult=1.05)
             
+            # Link to multilevel numbering ONLY for numbered headings
+            if ct != 'h2_no_num':
+                _link_heading_to_numbering(p, heading_level)
+            
         elif ct == 'fig':
+            current_list_type = None
+            current_num_id = None
             p = doc.add_paragraph()
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             add_run(p, item['text'], 'Times New Roman', 14, bold=True, italic=True, color=BLACK)
             set_spacing(p, before=0, after=10, line_mult=1.05)
             
         elif ct == 'img':
+            current_list_type = None
+            current_num_id = None
             for data, w, h in item.get('images', []):
                 try:
                     if w > 0 and w != CONTENT_WIDTH_EMU:
@@ -565,13 +903,47 @@ def format_document(input_path, output_path):
                 p = doc.add_paragraph()
                 
                 # Apply real Word list formatting if detected
-                if item.get('is_bullet'):
+                is_bullet = item.get('is_bullet')
+                list_type = item.get('list_type')
+                
+                if is_bullet:
+                    if current_list_type != 'bullet':
+                        current_list_type = 'bullet'
+                        current_num_id = None
                     apply_list_bullet(doc, p)
                     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-                elif item.get('list_type'):
-                    apply_list_style(doc, p, item['list_type'])
+                elif list_type:
+                    # If new list sequence, create a new num XML linked to the abstract list
+                    if current_list_type != list_type:
+                        current_list_type = list_type
+                        current_num_id = next_num_id_counter
+                        next_num_id_counter += 1
+                        
+                        abs_id = {'list_number': '20', 'list_alpha': '21', 'list_roman': '22'}[list_type]
+                        numbering_elem = doc.part.numbering_part._element
+                        num = OxmlElement('w:num')
+                        num.set(qn('w:numId'), str(current_num_id))
+                        
+                        abstractNumId_elem = OxmlElement('w:abstractNumId')
+                        abstractNumId_elem.set(qn('w:val'), abs_id)
+                        num.append(abstractNumId_elem)
+                        
+                        # Add lvlOverride to FORCE Word to restart at 1
+                        lvlOverride = OxmlElement('w:lvlOverride')
+                        lvlOverride.set(qn('w:ilvl'), '0')
+                        startOverride = OxmlElement('w:startOverride')
+                        startOverride.set(qn('w:val'), '1')
+                        lvlOverride.append(startOverride)
+                        num.append(lvlOverride)
+                        
+                        numbering_elem.append(num)
+                        
+                    apply_list_style(doc, p, current_num_id)
                     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
                 else:
+                    # Normal paragraph breaks the list sequence
+                    current_list_type = None
+                    current_num_id = None
                     p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
                 
                 if item['runs']:
@@ -582,6 +954,8 @@ def format_document(input_path, output_path):
                 set_spacing(p, before=0, after=6, line_mult=1.05)
                 
         elif ct == 'table':
+            current_list_type = None
+            current_num_id = None
             rows = item['rows']
             max_cols = max(len(r) for r in rows)
             tbl = doc.add_table(rows=len(rows), cols=max_cols)
