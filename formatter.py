@@ -22,13 +22,13 @@ WHITE  = RGBColor(255, 255, 255)
 # (numbering depth + bold formatting) so it works for ANY document.
 
 # Explicit bullet marker characters: •, -, *, □, ▪ and Unicode variants
-# Also catches plain 'o' if followed by space OR if directly followed by an uppercase letter (e.g. "oAnd", "oMoreover")
+# Also catches plain 'o' if followed by space OR if directly followed by an uppercase letter/quote (e.g. "oAnd", `o"Shall"`)
 BULLET_MARKER = re.compile(
     r'^(?:'
     r'[\u2022\u2023\u25CF\u25CB\u25AA\u25AB\u25A0\u25A1\u25B8\u25B9'
     r'\u2043\u2013\u2014\u2610\u25E6\u25C6\u25C7\uf0b7\uf0a7\uf076'
     r'\uf0d8\u00B7\-\*]\s*'
-    r'|o(?=\s|[A-Z])\s*'
+    r'|o(?=\s|[A-Z]|")\s*'
     r')'
 )
 
@@ -820,8 +820,7 @@ def format_document(input_path, output_path):
     print("PHASE 3: Rebuilding...")
     
     # Track list state to handle list restarting
-    current_list_type = None
-    current_num_id = None
+    active_lists = {}
     next_num_id_counter = 11  # 10 is used by headings
     
     for item in items:
@@ -829,8 +828,7 @@ def format_document(input_path, output_path):
         
         # Reset lists on headings
         if ct in ('h1', 'h2', 'h3', 'h4', 'h2_no_num'):
-            current_list_type = None
-            current_num_id = None
+            active_lists.clear()
         
         if ct == 'h1':
             p = doc.add_paragraph()
@@ -870,16 +868,14 @@ def format_document(input_path, output_path):
                 _link_heading_to_numbering(p, heading_level)
             
         elif ct == 'fig':
-            current_list_type = None
-            current_num_id = None
+            active_lists.clear()
             p = doc.add_paragraph()
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             add_run(p, item['text'], 'Times New Roman', 14, bold=True, italic=True, color=BLACK)
             set_spacing(p, before=0, after=10, line_mult=1.05)
             
         elif ct == 'img':
-            current_list_type = None
-            current_num_id = None
+            active_lists.clear()
             for data, w, h in item.get('images', []):
                 try:
                     if w > 0 and w != CONTENT_WIDTH_EMU:
@@ -910,17 +906,14 @@ def format_document(input_path, output_path):
                 list_type = item.get('list_type')
                 
                 if is_bullet:
-                    if current_list_type != 'bullet':
-                        current_list_type = 'bullet'
-                        current_num_id = None
                     apply_list_bullet(doc, p)
                     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
                 elif list_type:
-                    # If new list sequence, create a new num XML linked to the abstract list
-                    if current_list_type != list_type:
-                        current_list_type = list_type
+                    # If new list sequence for this type, create a new num XML linked to the abstract list
+                    if list_type not in active_lists:
                         current_num_id = next_num_id_counter
                         next_num_id_counter += 1
+                        active_lists[list_type] = current_num_id
                         
                         abs_id = {'list_number': '20', 'list_alpha': '21', 'list_roman': '22'}[list_type]
                         numbering_elem = doc.part.numbering_part._element
@@ -941,12 +934,11 @@ def format_document(input_path, output_path):
                         
                         numbering_elem.append(num)
                         
-                    apply_list_style(doc, p, current_num_id)
+                    apply_list_style(doc, p, active_lists[list_type])
                     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
                 else:
                     # Normal paragraph breaks the list sequence
-                    current_list_type = None
-                    current_num_id = None
+                    active_lists.clear()
                     p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
                 
                 if item['runs']:
@@ -957,8 +949,7 @@ def format_document(input_path, output_path):
                 set_spacing(p, before=0, after=6, line_mult=1.05)
                 
         elif ct == 'table':
-            current_list_type = None
-            current_num_id = None
+            active_lists.clear()
             rows = item['rows']
             max_cols = max(len(r) for r in rows)
             tbl = doc.add_table(rows=len(rows), cols=max_cols)
