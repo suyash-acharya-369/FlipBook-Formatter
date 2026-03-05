@@ -7,28 +7,22 @@
     <title>Flip-Book Formatter | AISECT Learn</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --brand-blue: #0C4395;
-            --brand-blue-dark: #083278;
-            --brand-orange: #F97316;
-            --brand-orange-dark: #C95D0D;
-            --off-white: #F8FAFC;
+            --blue: #0C4395;
+            --blue-dark: #083278;
+            --orange: #F97316;
+            --orange-dark: #C95D0D;
             --white: #ffffff;
-            --text-primary: #1E293B;
-            --text-secondary: #475569;
-            --text-muted: #94A3B8;
-            --border-light: #E2E8F0;
-            --border-focus: #93C5FD;
-            --highlight: #EFF6FF;
+            --off-white: #F8FAFC;
+            --text: #1E293B;
+            --subtext: #475569;
+            --muted: #94A3B8;
+            --border: #E2E8F0;
+            --blue-light: #EFF6FF;
             --success: #10B981;
             --error: #EF4444;
-            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-            --shadow-md: 0 4px 16px rgba(12, 67, 149, 0.08), 0 2px 6px rgba(0, 0, 0, 0.05);
-            --shadow-xl: 0 20px 50px -10px rgba(0, 0, 0, 0.12), 0 8px 16px -4px rgba(0, 0, 0, 0.06);
             --tx: 160ms ease;
         }
 
@@ -48,28 +42,23 @@
             align-items: center;
             justify-content: center;
             padding: 2rem;
-            color: var(--text-secondary);
+            color: var(--subtext);
         }
 
-        /* ── Outer card adapts width for preview ── */
+        /* ── Card ── */
         .card {
             display: flex;
             width: 100%;
-            max-width: 1100px;
-            min-height: 580px;
+            max-width: 1060px;
+            min-height: 560px;
             border-radius: 20px;
             overflow: hidden;
-            box-shadow: var(--shadow-xl);
-            transition: max-width 0.4s ease;
-        }
-
-        .card.expanded {
-            max-width: 1350px;
+            box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.12), 0 8px 16px -4px rgba(0, 0, 0, 0.06);
         }
 
         /* ── LEFT panel ── */
         .info-panel {
-            flex: 0 0 38%;
+            flex: 0 0 40%;
             padding: 3.5rem;
             background: linear-gradient(160deg, #0C4395 0%, #0A3070 55%, #061d4b 100%);
             color: var(--white);
@@ -114,7 +103,7 @@
         .brand-icon {
             width: 38px;
             height: 38px;
-            background: var(--brand-orange);
+            background: var(--orange);
             border-radius: 10px;
             display: flex;
             align-items: center;
@@ -132,41 +121,37 @@
             font-size: 1.05rem;
             font-weight: 700;
             letter-spacing: 0.01em;
-            opacity: 0.95;
         }
 
         .brand-name span {
             display: block;
             font-size: 0.75rem;
             font-weight: 500;
-            opacity: 0.65;
+            opacity: 0.6;
             letter-spacing: 0.04em;
             text-transform: uppercase;
         }
 
-        .info-body {
-            max-width: 420px;
-        }
-
         .info-body h1 {
-            font-size: 2.4rem;
+            font-size: 2.3rem;
             font-weight: 800;
             line-height: 1.1;
             letter-spacing: -0.03em;
-            margin-bottom: 1rem;
+            margin-bottom: 0.9rem;
+            max-width: 360px;
         }
 
         .info-body h1 em {
             font-style: normal;
-            color: var(--brand-orange);
+            color: var(--orange);
         }
 
         .info-body .desc {
-            font-size: 0.975rem;
+            font-size: 0.95rem;
             line-height: 1.7;
-            opacity: 0.78;
+            opacity: 0.75;
             margin-bottom: 2.25rem;
-            max-width: 380px;
+            max-width: 360px;
         }
 
         .features {
@@ -180,18 +165,18 @@
             display: flex;
             align-items: flex-start;
             gap: 0.75rem;
-            font-size: 0.9rem;
+            font-size: 0.875rem;
             font-weight: 500;
             opacity: 0.9;
             line-height: 1.5;
         }
 
-        .feat-check {
+        .feat-icon {
             width: 20px;
             height: 20px;
             border-radius: 50%;
-            background: rgba(249, 115, 22, 0.25);
-            border: 1.5px solid rgba(249, 115, 22, 0.5);
+            background: rgba(249, 115, 22, 0.22);
+            border: 1.5px solid rgba(249, 115, 22, 0.45);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -199,62 +184,53 @@
             margin-top: 1px;
         }
 
-        .feat-check svg {
+        .feat-icon svg {
             width: 11px;
             height: 11px;
-            fill: var(--brand-orange);
+            fill: var(--orange);
         }
 
         .info-footer {
-            font-size: 0.78rem;
-            opacity: 0.45;
+            font-size: 0.75rem;
+            opacity: 0.4;
             margin-top: 3rem;
         }
 
-        /* ── RIGHT panel – contains all states ── */
+        /* ── RIGHT panel ── */
         .tool-panel {
             flex: 1;
             background: var(--white);
             display: flex;
-            flex-direction: column;
+            align-items: center;
             justify-content: center;
-            overflow: hidden;
-            transition: flex 0.4s ease;
         }
 
-        /* Inner scroller so we can show a taller preview without stretching the card */
         .tool-inner {
+            width: 100%;
             padding: 3.5rem;
-            height: 100%;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
         }
 
-        /* ─────────────────────────────
+        /* ═══════════════════════════════
            STATE: UPLOAD
-        ───────────────────────────── */
-        #upload-view {}
-
+        ═══════════════════════════════ */
         .panel-header {
             margin-bottom: 2rem;
         }
 
         .panel-header h2 {
-            font-size: 1.5rem;
+            font-size: 1.45rem;
             font-weight: 700;
-            color: var(--text-primary);
+            color: var(--text);
             margin-bottom: 0.3rem;
         }
 
         .panel-header p {
-            font-size: 0.9rem;
-            color: var(--text-muted);
+            font-size: 0.875rem;
+            color: var(--muted);
         }
 
         .drop-zone {
-            border: 2px dashed var(--border-light);
+            border: 2px dashed var(--border);
             border-radius: 14px;
             padding: 3rem 2rem;
             text-align: center;
@@ -269,27 +245,13 @@
 
         .drop-zone:hover {
             border-color: #93C5FD;
-            background: var(--highlight);
+            background: var(--blue-light);
         }
 
         .drop-zone.dragover {
-            border-color: var(--brand-blue);
+            border-color: var(--blue);
             background: #dbeafe;
             box-shadow: 0 0 0 5px rgba(12, 67, 149, 0.07);
-        }
-
-        .upload-icon-wrap {
-            width: 68px;
-            height: 68px;
-            border-radius: 16px;
-            background: white;
-            border: 1.5px solid var(--border-light);
-            box-shadow: var(--shadow-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1.25rem;
-            transition: transform var(--tx), box-shadow var(--tx);
         }
 
         .drop-zone:hover .upload-icon-wrap,
@@ -298,22 +260,36 @@
             box-shadow: 0 8px 20px rgba(12, 67, 149, 0.12);
         }
 
+        .upload-icon-wrap {
+            width: 68px;
+            height: 68px;
+            border-radius: 16px;
+            background: white;
+            border: 1.5px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.25rem;
+            transition: transform var(--tx), box-shadow var(--tx);
+        }
+
         .upload-icon-wrap svg {
             width: 30px;
             height: 30px;
-            fill: var(--brand-blue);
+            fill: var(--blue);
         }
 
         .dz-title {
-            font-size: 1.05rem;
+            font-size: 1rem;
             font-weight: 600;
-            color: var(--text-primary);
+            color: var(--text);
             margin-bottom: 0.4rem;
         }
 
         .dz-sub {
-            font-size: 0.85rem;
-            color: var(--text-muted);
+            font-size: 0.84rem;
+            color: var(--muted);
             max-width: 270px;
             line-height: 1.5;
             margin-bottom: 1.5rem;
@@ -323,9 +299,9 @@
             display: none;
         }
 
-        /* ─────────────────────────────
+        /* ═══════════════════════════════
            STATE: PROCESSING
-        ───────────────────────────── */
+        ═══════════════════════════════ */
         #processing-view {
             display: none;
         }
@@ -340,14 +316,14 @@
         .proc-header h2 {
             font-size: 1.35rem;
             font-weight: 700;
-            color: var(--text-primary);
+            color: var(--text);
         }
 
         .spinner {
             width: 22px;
             height: 22px;
-            border: 3px solid var(--border-light);
-            border-top-color: var(--brand-blue);
+            border: 3px solid var(--border);
+            border-top-color: var(--blue);
             border-radius: 50%;
             animation: spin 0.9s linear infinite;
         }
@@ -368,7 +344,7 @@
             display: flex;
             align-items: center;
             gap: 1rem;
-            opacity: 0.3;
+            opacity: 0.28;
             transition: opacity 0.3s ease;
         }
 
@@ -385,15 +361,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-weight: 700;
-            background: var(--border-light);
-            color: var(--text-muted);
+            background: var(--border);
+            color: var(--muted);
             transition: background 0.3s, box-shadow 0.3s;
         }
 
         .step.active .step-badge {
-            background: var(--brand-orange);
+            background: var(--orange);
             color: white;
             box-shadow: 0 0 0 5px rgba(249, 115, 22, 0.15);
         }
@@ -408,284 +384,110 @@
         }
 
         .step-label {
-            font-size: 0.925rem;
+            font-size: 0.9rem;
             font-weight: 500;
-            color: var(--text-primary);
+            color: var(--text);
         }
 
-        /* ─────────────────────────────
-           STATE: PREVIEW
-        ───────────────────────────── */
-
-        /* When preview is active, the whole tool-panel becomes the gray viewer */
-        .tool-panel.preview-active {
-            background: #dde3ec;
+        /* ═══════════════════════════════
+           STATE: SUCCESS
+        ═══════════════════════════════ */
+        #success-view {
+            display: none;
+            animation: fadeUp 0.4s ease forwards;
         }
 
-        .tool-panel.preview-active .tool-inner {
-            padding: 0;
-            display: flex;
-            flex-direction: column;
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        /* Combined sticky header bar: label left, buttons right */
-        .preview-header-bar {
-            background: white;
-            border-bottom: 1px solid var(--border-light);
-            padding: 0.9rem 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            flex-shrink: 0;
-            /* Sticky inside the flex column so it stays at the top while doc-viewport scrolls */
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .preview-header-left {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-        }
-
-        .preview-dot {
-            width: 8px;
-            height: 8px;
+        .success-icon {
+            width: 58px;
+            height: 58px;
             border-radius: 50%;
-            background: var(--success);
-            flex-shrink: 0;
-        }
-
-        .preview-bar-title {
-            font-size: 0.75rem;
-            font-weight: 700;
-            letter-spacing: 0.07em;
-            text-transform: uppercase;
-            color: var(--text-primary);
-        }
-
-        .preview-bar-sub {
-            font-size: 0.71rem;
-            color: var(--text-muted);
-            margin-top: 1px;
-        }
-
-        .preview-header-actions {
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid rgba(16, 185, 129, 0.22);
             display: flex;
             align-items: center;
-            gap: 0.625rem;
-            flex-shrink: 0;
-        }
-
-        /* Button sizes inside the header */
-        .preview-header-actions .btn-ghost {
-            padding: 0.55rem 1rem;
-            font-size: 0.84rem;
-        }
-
-        .preview-header-actions .btn-download {
-            padding: 0.6rem 1.25rem;
-            font-size: 0.84rem;
-        }
-
-        /* Gray scroll area */
-        .doc-viewport {
-            flex: 1;
-            overflow-y: auto;
-            padding: 2.5rem 2rem;
-            display: flex;
             justify-content: center;
-            align-items: flex-start;
+            margin-bottom: 1.25rem;
         }
 
-        /* White centered paper page */
-        .doc-page {
-            background: white;
-            width: 100%;
-            max-width: 640px;
-            min-height: 400px;
-            border-radius: 4px;
-            box-shadow:
-                0 2px 6px rgba(0, 0, 0, 0.08),
-                0 8px 24px rgba(0, 0, 0, 0.10),
-                0 20px 40px rgba(0, 0, 0, 0.06);
-            padding: 3.5rem 4rem;
-            font-family: 'Merriweather', Georgia, serif;
-            font-size: 0.84rem;
-            line-height: 1.8;
-            color: #1a202c;
-            position: relative;
+        .success-icon svg {
+            width: 26px;
+            height: 26px;
+            fill: var(--success);
         }
 
-        /* ── Preview Typography ── */
-        .doc-page .pv-h1 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            text-align: center;
-            background: #e36b0a;
-            color: white;
-            padding: 0.65rem 1.25rem;
-            margin: 0 -1rem 1.5rem;
-            font-family: 'Inter', sans-serif;
-            letter-spacing: -0.01em;
-        }
-
-        .doc-page .pv-h2 {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: #e36b0a;
-            margin: 1.75rem 0 0.6rem;
-            border-bottom: 1.5px solid #fed7aa;
-            padding-bottom: 0.35rem;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .doc-page .pv-h3 {
-            font-size: 0.92rem;
-            font-weight: 700;
-            color: #1e3a8a;
-            margin: 1.25rem 0 0.4rem;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .doc-page .pv-h4 {
-            font-size: 0.87rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin: 1rem 0 0.3rem;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .doc-page .pv-p {
-            margin-bottom: 0.8rem;
-            text-align: justify;
-        }
-
-        .doc-page .pv-blank {
-            height: 0.5rem;
-        }
-
-        .doc-page .pv-ul {
-            margin: 0.5rem 0 0.8rem 1.5rem;
-        }
-
-        .doc-page .pv-li {
+        #success-view h2 {
+            font-size: 1.55rem;
+            font-weight: 800;
+            color: var(--text);
             margin-bottom: 0.4rem;
         }
 
-        .doc-page .pv-caption {
-            font-size: 0.74rem;
-            font-style: italic;
-            text-align: center;
-            color: #64748b;
-            margin: 0.5rem 0;
+        #success-view .sub {
+            font-size: 0.875rem;
+            color: var(--muted);
+            margin-bottom: 1.75rem;
         }
 
-        /* Bottom action bar */
-        .preview-action-bar {
-            background: white;
-            border-top: 1px solid var(--border-light);
-            padding: 1rem 1.75rem;
+        .transform-list {
+            list-style: none;
+            background: var(--off-white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .transform-item {
             display: flex;
             align-items: center;
-            gap: 0.875rem;
+            gap: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .check-icon {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1.5px solid rgba(16, 185, 129, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             flex-shrink: 0;
         }
 
-        .preview-note-bar {
-            flex: 1;
-            font-size: 0.75rem;
-            color: var(--text-muted);
+        .check-icon svg {
+            width: 10px;
+            height: 10px;
+            fill: var(--success);
         }
 
-        #preview-view {
-            display: none;
+        .success-actions {
+            display: flex;
             flex-direction: column;
-            height: 100%;
-            animation: fadeUp 0.35s ease forwards;
+            gap: 0.875rem;
         }
 
-        /* ─────────────────────────────
-           BUTTONS
-        ───────────────────────────── */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-family: inherit;
-            font-weight: 600;
-            font-size: 0.925rem;
-            border: none;
-            border-radius: 9px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: background var(--tx), box-shadow var(--tx), transform var(--tx);
-        }
-
-        .btn-primary {
-            padding: 0.8rem 1.75rem;
-            background: var(--brand-orange);
-            color: white;
-            box-shadow: 0 4px 14px rgba(249, 115, 22, 0.28);
-        }
-
-        .btn-primary:hover {
-            background: var(--brand-orange-dark);
-            box-shadow: 0 6px 18px rgba(249, 115, 22, 0.38);
-            transform: translateY(-1px);
-        }
-
-        .btn-primary:active {
-            transform: translateY(0);
-        }
-
-        .btn-blue {
-            padding: 0.8rem 1.75rem;
-            background: var(--brand-blue);
-            color: white;
-            width: 100%;
-            box-shadow: 0 4px 14px rgba(12, 67, 149, 0.2);
-        }
-
-        .btn-blue:hover {
-            background: var(--brand-blue-dark);
-            box-shadow: 0 6px 18px rgba(12, 67, 149, 0.28);
-            transform: translateY(-1px);
-        }
-
-        .btn-ghost {
-            padding: 0.8rem 1.75rem;
-            background: transparent;
-            color: var(--text-secondary);
-            border: 1.5px solid var(--border-light);
-        }
-
-        .btn-ghost:hover {
-            background: var(--off-white);
-            border-color: #CBD5E1;
-        }
-
-        .btn-download {
-            padding: 0.9rem 2rem;
-            background: var(--brand-orange);
-            color: white;
-            width: 100%;
-            font-size: 1rem;
-            box-shadow: 0 4px 14px rgba(249, 115, 22, 0.28);
-        }
-
-        .btn-download:hover {
-            background: var(--brand-orange-dark);
-            box-shadow: 0 8px 20px rgba(249, 115, 22, 0.38);
-            transform: translateY(-2px);
-        }
-
-        /* ─────────────────────────────
+        /* ═══════════════════════════════
            FILE SELECTED STATE
-        ───────────────────────────── */
+        ═══════════════════════════════ */
         .file-status {
             display: none;
             flex-direction: column;
@@ -696,8 +498,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: var(--highlight);
-            border: 1px solid var(--border-focus);
+            background: var(--blue-light);
+            border: 1px solid #bfdbfe;
             border-radius: 10px;
             padding: 1rem 1.25rem;
         }
@@ -707,25 +509,25 @@
             align-items: center;
             gap: 0.75rem;
             font-weight: 500;
-            font-size: 0.9rem;
-            color: var(--text-primary);
+            font-size: 0.875rem;
+            color: var(--text);
         }
 
         .file-pill-name svg {
             width: 22px;
             height: 22px;
-            fill: var(--brand-blue);
+            fill: var(--blue);
             flex-shrink: 0;
         }
 
         .remove-btn {
-            width: 30px;
-            height: 30px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             background: transparent;
             border: none;
             cursor: pointer;
-            color: var(--text-muted);
+            color: var(--muted);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -738,14 +540,91 @@
         }
 
         .remove-btn svg {
-            width: 16px;
-            height: 16px;
+            width: 15px;
+            height: 15px;
             fill: currentColor;
         }
 
-        /* ─────────────────────────────
+        /* ═══════════════════════════════
+           BUTTONS
+        ═══════════════════════════════ */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.925rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background var(--tx), box-shadow var(--tx), transform var(--tx);
+        }
+
+        .btn-orange {
+            padding: 0.8rem 1.75rem;
+            background: var(--orange);
+            color: white;
+            box-shadow: 0 4px 14px rgba(249, 115, 22, 0.28);
+        }
+
+        .btn-orange:hover {
+            background: var(--orange-dark);
+            box-shadow: 0 6px 18px rgba(249, 115, 22, 0.38);
+            transform: translateY(-1px);
+        }
+
+        .btn-orange:active {
+            transform: translateY(0);
+        }
+
+        .btn-blue {
+            padding: 0.8rem 1.75rem;
+            background: var(--blue);
+            color: white;
+            width: 100%;
+            box-shadow: 0 4px 14px rgba(12, 67, 149, 0.2);
+        }
+
+        .btn-blue:hover {
+            background: var(--blue-dark);
+            box-shadow: 0 6px 18px rgba(12, 67, 149, 0.28);
+            transform: translateY(-1px);
+        }
+
+        .btn-download {
+            padding: 0.9rem 2rem;
+            width: 100%;
+            background: var(--orange);
+            color: white;
+            font-size: 1rem;
+            box-shadow: 0 4px 14px rgba(249, 115, 22, 0.28);
+        }
+
+        .btn-download:hover {
+            background: var(--orange-dark);
+            box-shadow: 0 8px 20px rgba(249, 115, 22, 0.38);
+            transform: translateY(-2px);
+        }
+
+        .btn-ghost {
+            padding: 0.8rem 1.75rem;
+            width: 100%;
+            background: transparent;
+            color: var(--subtext);
+            border: 1.5px solid var(--border);
+        }
+
+        .btn-ghost:hover {
+            background: var(--off-white);
+            border-color: #CBD5E1;
+        }
+
+        /* ═══════════════════════════════
            ERROR BANNER
-        ───────────────────────────── */
+        ═══════════════════════════════ */
         .error-banner {
             display: none;
             margin-top: 1rem;
@@ -758,25 +637,10 @@
             color: var(--error);
         }
 
-        /* ─────────────────────────────
-           ANIMATIONS
-        ───────────────────────────── */
-        @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(12px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* ─────────────────────────────
+        /* ═══════════════════════════════
            RESPONSIVE
-        ───────────────────────────── */
-        @media (max-width: 860px) {
+        ═══════════════════════════════ */
+        @media (max-width: 820px) {
             .card {
                 flex-direction: column;
             }
@@ -799,9 +663,9 @@
 
 <body>
 
-    <div class="card" id="main-card">
+    <div class="card">
 
-        <!-- ── LEFT: Info & Branding ── -->
+        <!-- ── LEFT: Branding ── -->
         <div class="info-panel">
             <div>
                 <div class="brand">
@@ -823,25 +687,25 @@
                         chapters — automatically.</p>
                     <ul class="features">
                         <li class="feature">
-                            <span class="feat-check"><svg viewBox="0 0 24 24">
+                            <span class="feat-icon"><svg viewBox="0 0 24 24">
                                     <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                                 </svg></span>
                             Fix heading numbering automatically
                         </li>
                         <li class="feature">
-                            <span class="feat-check"><svg viewBox="0 0 24 24">
+                            <span class="feat-icon"><svg viewBox="0 0 24 24">
                                     <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                                 </svg></span>
                             Convert manual bullets into structured lists
                         </li>
                         <li class="feature">
-                            <span class="feat-check"><svg viewBox="0 0 24 24">
+                            <span class="feat-icon"><svg viewBox="0 0 24 24">
                                     <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                                 </svg></span>
                             Clean Word formatting &amp; styles
                         </li>
                         <li class="feature">
-                            <span class="feat-check"><svg viewBox="0 0 24 24">
+                            <span class="feat-icon"><svg viewBox="0 0 24 24">
                                     <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                                 </svg></span>
                             Export chapters ready for publishing
@@ -852,7 +716,7 @@
             <div class="info-footer">For content team use only &bull; AISECT Learn Platform</div>
         </div>
 
-        <!-- ── RIGHT: Tool Interface ── -->
+        <!-- ── RIGHT: Tool ── -->
         <div class="tool-panel">
             <div class="tool-inner">
 
@@ -860,7 +724,7 @@
                 <div id="upload-view">
                     <div class="panel-header">
                         <h2>Format a Chapter</h2>
-                        <p>Upload a Word document to begin formatting</p>
+                        <p>Upload a Word document to begin</p>
                     </div>
 
                     <div class="drop-zone" id="drop-zone">
@@ -871,9 +735,8 @@
                             </svg>
                         </div>
                         <div class="dz-title">Upload raw course chapter (.DOCX)</div>
-                        <div class="dz-sub">The system will automatically structure headings, bullets, and numbering.
-                        </div>
-                        <button type="button" class="btn btn-primary"
+                        <div class="dz-sub">Headings, bullets, and numbering will be structured automatically.</div>
+                        <button type="button" class="btn btn-orange"
                             onclick="document.getElementById('file-input').click()">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
                                 <path
@@ -900,7 +763,7 @@
                                 </svg>
                             </button>
                         </div>
-                        <button type="button" class="btn btn-blue" id="submit-btn" onclick="submitDoc(event)">
+                        <button type="button" class="btn btn-blue" onclick="submitDoc(event)">
                             Process Document
                         </button>
                     </div>
@@ -934,42 +797,59 @@
                     </div>
                 </div>
 
-                <!-- STATE 3: Preview + Download -->
-                <div id="preview-view">
+                <!-- STATE 3: Success -->
+                <div id="success-view">
+                    <div class="success-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                        </svg>
+                    </div>
+                    <h2>Formatting complete.</h2>
+                    <p class="sub">Your chapter has been formatted successfully.</p>
 
-                    <!-- Sticky header: label + action buttons always visible -->
-                    <div class="preview-header-bar">
-                        <div class="preview-header-left">
-                            <div class="preview-dot"></div>
-                            <div>
-                                <div class="preview-bar-title">Formatted Preview</div>
-                                <div class="preview-bar-sub">Showing first section &mdash; download for the complete
-                                    chapter</div>
-                            </div>
-                        </div>
-                        <div class="preview-header-actions">
-                            <button type="button" class="btn btn-ghost" id="reset-btn">Upload Another</button>
-                            <a href="#" class="btn btn-download" id="download-link">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="white">
-                                    <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
-                                </svg>
-                                Download Chapter
-                            </a>
-                        </div>
+                    <ul class="transform-list">
+                        <li class="transform-item">
+                            <div class="check-icon"><svg viewBox="0 0 24 24">
+                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                                </svg></div>
+                            Heading numbering corrected
+                        </li>
+                        <li class="transform-item">
+                            <div class="check-icon"><svg viewBox="0 0 24 24">
+                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                                </svg></div>
+                            Bullet lists structured
+                        </li>
+                        <li class="transform-item">
+                            <div class="check-icon"><svg viewBox="0 0 24 24">
+                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                                </svg></div>
+                            Paragraph formatting cleaned
+                        </li>
+                        <li class="transform-item">
+                            <div class="check-icon"><svg viewBox="0 0 24 24">
+                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                                </svg></div>
+                            Chapter ready for flip-book publishing
+                        </li>
+                    </ul>
+
+                    <div class="success-actions">
+                        <a href="#" class="btn btn-download" id="download-link">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+                            </svg>
+                            Download Formatted Chapter
+                        </a>
+                        <button type="button" class="btn btn-ghost" id="reset-btn">Upload Another File</button>
                     </div>
 
-                    <!-- Gray scrollable viewport with white paper page -->
-                    <div class="doc-viewport">
-                        <div class="doc-page" id="doc-page">
-                            <!-- Filled by JS from /preview endpoint -->
-                        </div>
-                    </div>
-
-                    <div class="error-banner" id="result-error" style="margin:0 1.5rem 0.75rem;"></div>
+                    <div class="error-banner" id="result-error"></div>
                 </div>
 
             </div>
         </div>
+
     </div>
 
     <script>
@@ -981,13 +861,9 @@
         const uploadView = document.getElementById('upload-view');
         const uploadErr = document.getElementById('upload-error');
         const procView = document.getElementById('processing-view');
-        const prevView = document.getElementById('preview-view');
-        const docPage = document.getElementById('doc-page');
+        const succView = document.getElementById('success-view');
         const dlLink = document.getElementById('download-link');
         const resetBtn = document.getElementById('reset-btn');
-        const card = document.getElementById('main-card');
-        const toolPanel = document.querySelector('.tool-panel');  /* for gray bg */
-        const toolInner = document.querySelector('.tool-inner');
         const steps = [1, 2, 3, 4].map(i => document.getElementById('step-' + i));
 
         let selectedFile = null;
@@ -1035,35 +911,21 @@
             try {
                 const res = await fetch('/upload', { method: 'POST', body: fd });
                 const ct = res.headers.get('content-type') || '';
-                const data = ct.includes('json') ? await res.json() : await res.text().then(t => { throw new Error(t || res.statusText); });
+                const data = ct.includes('json')
+                    ? await res.json()
+                    : await res.text().then(t => { throw new Error(t || res.statusText); });
 
                 if (!res.ok || !data.success) throw new Error(data.error || 'Formatting failed.');
 
-                // Complete all steps
                 clearTimers();
                 steps.forEach(s => s.className = 'step done');
 
-                // Fetch preview HTML
-                const jobId = data.job_id;
-                const fname = data.filename;
-                dlLink.href = `/download/${jobId}/${encodeURIComponent(fname)}`;
+                dlLink.href = `/download/${data.job_id}/${encodeURIComponent(data.filename)}`;
 
-                let previewHtml = '<p style="color:#94A3B8;font-style:italic;">Preview not available for this document.</p>';
-                try {
-                    const pr = await fetch(`/preview/${jobId}/${encodeURIComponent(fname)}`);
-                    const pd = await pr.json();
-                    if (pd.success && pd.html) previewHtml = pd.html;
-                } catch (_) { }
-
-                // Small delay so "done" ticks are visible
                 setTimeout(() => {
                     procView.style.display = 'none';
-                    docPage.innerHTML = previewHtml;
-                    prevView.style.display = 'flex';  /* flex column for bar/viewport/actions */
-                    toolPanel.classList.add('preview-active');
-                    toolInner.style.padding = '0';  /* override so viewport fills the panel */
-                    toolInner.style.justifyContent = 'flex-start';
-                }, 500);
+                    succView.style.display = 'block';
+                }, 400);
 
             } catch (err) {
                 clearTimers();
@@ -1082,13 +944,9 @@
             fileInput.value = '';
             uploadView.style.display = 'block';
             procView.style.display = 'none';
-            prevView.style.display = 'none';
+            succView.style.display = 'none';
             dropZone.style.display = 'flex';
             fileStatus.style.display = 'none';
-            toolPanel.classList.remove('preview-active');
-            toolInner.style.padding = '';
-            toolInner.style.justifyContent = '';
-            docPage.innerHTML = '';
             hideErr(uploadErr);
             hideErr(document.getElementById('result-error'));
         }
@@ -1096,7 +954,7 @@
         function resetSteps() { steps.forEach((s, i) => { s.className = i === 0 ? 'step active' : 'step'; }); }
 
         function animateSteps() {
-            [800, 1800, 3200].forEach((delay, i) => {
+            [900, 2000, 3400].forEach((delay, i) => {
                 timers.push(setTimeout(() => {
                     steps[i].className = 'step done';
                     steps[i + 1].className = 'step active';
@@ -1105,7 +963,7 @@
         }
 
         function clearTimers() { timers.forEach(clearTimeout); timers = []; }
-        function showErr(el, msg) { el.textContent = msg; el.style.display = 'block'; }
+        function showErr(el, msg) { if (el) { el.textContent = msg; el.style.display = 'block'; } }
         function hideErr(el) { if (el) el.style.display = 'none'; }
     </script>
 </body>
