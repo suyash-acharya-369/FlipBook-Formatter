@@ -4,21 +4,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flip-Book Formatter Pro</title>
-    <!-- Use a modern Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <title>Flip-Book Formatter</title>
+    <!-- Modern Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #122f7f;
-            --glass-bg: rgb(238, 143, 34);
-            --glass-border: rgba(0, 0, 0, 0.1);
-            --primary: #000000;
-            /* Orange to match the document theme */
-            --primary-glow: rgba(0, 0, 0, 0.5);
-            --secondary: #000000;
-            /* Blue to match target document theme */
-            --text-main: #f8fafc;
-            --text-muted: #000000;
+            --bg-main: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --primary: #ea580c;
+            --primary-hover: #c2410c;
+            --primary-glow: rgba(234, 88, 12, 0.15);
+            --secondary: #f1f5f9;
+            --secondary-hover: #e2e8f0;
+            --secondary-text: #334155;
+            --border: #cbd5e1;
             --success: #10b981;
             --error: #ef4444;
         }
@@ -30,283 +33,284 @@
         }
 
         body {
-            font-family: 'Outfit', sans-serif;
-            background-color: var(--bg-color);
-            background-image:
-                linear-gradient(30deg, rgba(255, 255, 255, 0.05) 12%, transparent 12.5%, transparent 87%, rgba(255, 255, 255, 0.05) 87.5%, rgba(255, 255, 255, 0.05)),
-                linear-gradient(150deg, rgba(255, 255, 255, 0.05) 12%, transparent 12.5%, transparent 87%, rgba(255, 255, 255, 0.05) 87.5%, rgba(255, 255, 255, 0.05)),
-                linear-gradient(30deg, rgba(255, 255, 255, 0.05) 12%, transparent 12.5%, transparent 87%, rgba(255, 255, 255, 0.05) 87.5%, rgba(255, 255, 255, 0.05)),
-                linear-gradient(150deg, rgba(255, 255, 255, 0.05) 12%, transparent 12.5%, transparent 87%, rgba(255, 255, 255, 0.05) 87.5%, rgba(255, 255, 255, 0.05)),
-                linear-gradient(60deg, rgba(255, 255, 255, 0.03) 25%, transparent 25.5%, transparent 75%, rgba(255, 255, 255, 0.03) 75%, rgba(255, 255, 255, 0.03)),
-                linear-gradient(60deg, rgba(255, 255, 255, 0.03) 25%, transparent 25.5%, transparent 75%, rgba(255, 255, 255, 0.03) 75%, rgba(255, 255, 255, 0.03));
-            background-size: 80px 140px;
-            background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
             overflow: hidden;
-            position: relative;
+            padding: 2rem;
         }
 
-        /* Ambient Background Gradients */
-        .ambient-glow {
-            position: absolute;
-            width: 600px;
-            height: 600px;
-            border-radius: 50%;
-            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 60%);
-            top: -200px;
-            left: -200px;
-            opacity: 0.4;
-            z-index: 0;
-            pointer-events: none;
-            animation: float 10s ease-in-out infinite alternate;
+        /* Abstract ambient background */
+        .bg-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            background:
+                radial-gradient(circle at 15% 15%, rgba(234, 88, 12, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(59, 130, 246, 0.04) 0%, transparent 40%);
         }
 
-        .ambient-glow.blue {
-            background: radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, transparent 60%);
-            bottom: -200px;
-            right: -200px;
-            top: auto;
-            left: auto;
-            animation: float 12s ease-in-out infinite alternate-reverse;
-        }
-
-        @keyframes float {
-            0% {
-                transform: translate(0, 0);
-            }
-
-            100% {
-                transform: translate(50px, 50px);
-            }
-        }
-
-        /* Glassmorphism Container */
         .container {
-            position: relative;
+            width: 100%;
+            max-width: 680px;
             z-index: 10;
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
+        }
+
+        /* Main Card */
+        .card {
+            background: var(--card-bg);
             border-radius: 24px;
-            padding: 3rem;
-            width: 90%;
-            max-width: 600px;
-            box-shadow:
-                0 25px 50px -12px rgba(0, 0, 0, 0.4),
-                0 0 60px -10px rgba(238, 143, 34, 0.25),
-                /* Outer subtle orange glow */
-                0 0 20px -5px rgba(238, 143, 34, 0.4);
-            /* Inner brighter orange ring */
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.08), 0 0 10px rgba(0, 0, 0, 0.02);
+            padding: 3.5rem;
             text-align: center;
-            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            background-clip: padding-box;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.12), 0 0 15px rgba(0, 0, 0, 0.03);
         }
 
         .header {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            margin-bottom: 2.5rem;
         }
 
         .header img {
-            max-width: 250px;
+            height: 48px;
             margin-bottom: 1.5rem;
-            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
         }
 
-        .header h1 {
-            font-size: 2.5rem;
+        h1 {
+            font-size: 2.25rem;
             font-weight: 800;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, #ffffff, #f1f5f9);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.025em;
+            color: var(--text-main);
         }
 
-        .header p {
-            color: rgba(255, 255, 255, 0.8);
+        .subtitle {
             font-size: 1.1rem;
-            margin-bottom: 2rem;
+            color: var(--text-muted);
+            line-height: 1.5;
         }
 
-        /* Drag and Drop Zone - Styled as a Page */
+        /* Drop Zone */
         .drop-zone {
-            border: 2px dashed rgba(0, 0, 0, 0.2);
-            border-radius: 4px 24px 4px 4px;
-            /* Larger radius on top right for the fold */
+            border: 2px dashed var(--border);
+            border-radius: 16px;
             padding: 3rem 2rem;
+            background: #f8fafc;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            background: #ffffff;
-            /* Page white */
-            color: #1e293b;
-            /* Dark text for contrast on white */
-            box-shadow:
-                0 10px 25px -5px rgba(0, 0, 0, 0.1),
-                0 8px 10px -6px rgba(0, 0, 0, 0.1);
-        }
-
-        /* The folded corner effect */
-        .drop-zone::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            right: 0;
-            border-width: 0 32px 32px 0;
-            border-style: solid;
-            border-color: var(--glass-bg) var(--glass-bg) #e2e8f0 #e2e8f0;
-            border-radius: 0 0 0 12px;
-            box-shadow: -4px 4px 8px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            z-index: 2;
-        }
-
-        .drop-zone:hover::before,
-        .drop-zone.dragover::before {
-            border-width: 0 40px 40px 0;
-            box-shadow: -6px 6px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
         .drop-zone:hover,
         .drop-zone.dragover {
             border-color: var(--primary);
-            background: #f8fafc;
-            /* Slightly off-white on hover */
+            background: #fff8f5;
             transform: scale(1.02);
+            box-shadow: 0 10px 25px var(--primary-glow);
         }
 
-        .upload-icon {
+        .icon-container {
             width: 64px;
             height: 64px;
-            fill: var(--text-muted);
-            margin-bottom: 1rem;
-            transition: fill 0.3s ease;
+            background: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s ease;
         }
 
-        .drop-zone:hover .upload-icon,
-        .drop-zone.dragover .upload-icon {
+        .drop-zone:hover .icon-container {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        .icon-container svg {
+            width: 28px;
+            height: 28px;
             fill: var(--primary);
         }
 
-        .drop-zone-text {
-            font-size: 1.2rem;
+        .drop-title {
             font-weight: 600;
+            font-size: 1.15rem;
             margin-bottom: 0.5rem;
-            color: #0f172a;
-            /* Darker text for white page */
+            color: var(--text-main);
         }
 
-        .drop-zone-subtext {
-            color: #475569;
-            /* Darker muted text for white page */
-            font-size: 0.9rem;
+        .drop-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
         }
 
         #file-input {
             display: none;
         }
 
-        /* Selected File Status */
-        .file-status {
-            display: none;
-            margin-top: 1.5rem;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .file-name {
-            font-weight: 600;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            max-width: 70%;
-            text-align: left;
-        }
-
         /* Buttons */
         .btn {
-            background: linear-gradient(135deg, var(--primary), #ea580c);
-            color: rgb(255, 255, 255);
-            border: none;
-            padding: 0.8rem 2rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px var(--primary-glow);
-            width: 100%;
-            margin-top: 1.5rem;
-            display: none;
-            /* Shown when file is selected */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             font-family: inherit;
+            font-weight: 600;
+            padding: 0.875rem 1.75rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
         }
 
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px var(--primary-glow);
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px var(--primary-glow);
+            width: 100%;
         }
 
-        .btn:active {
+        .btn-primary:active {
             transform: translateY(1px);
         }
 
-        .btn:disabled {
-            background: #000000;
-            box-shadow: none;
-            cursor: not-allowed;
-            transform: none;
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px var(--primary-glow);
         }
 
-        /* Progress state */
+        .btn-secondary {
+            background: var(--secondary);
+            color: var(--secondary-text);
+            border: none;
+        }
+
+        .btn-secondary:hover {
+            background: var(--secondary-hover);
+        }
+
+        /* File Selected State */
+        .file-status {
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--secondary);
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .file-name {
+            font-weight: 500;
+            color: var(--text-main);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 80%;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .file-name svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .remove-file {
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 1.25rem;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+        }
+
+        .remove-file:hover {
+            color: var(--error);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Progress State */
         .progress-wrapper {
             display: none;
-            margin-top: 2rem;
+            padding: 2rem 0;
         }
 
-        .progress-text {
-            margin-bottom: 1rem;
-            font-weight: 600;
-            color: var(--secondary);
-        }
-
-        .loader {
-            width: 48px;
-            height: 48px;
-            border: 5px solid rgba(255, 255, 255, 0.1);
-            border-bottom-color: var(--primary);
+        .spinner {
+            width: 56px;
+            height: 56px;
+            border: 4px solid var(--secondary);
+            border-top-color: var(--primary);
             border-radius: 50%;
-            display: inline-block;
-            box-sizing: border-box;
-            animation: rotation 1s linear infinite;
+            animation: spin 1s infinite cubic-bezier(0.55, 0.15, 0.45, 0.85);
+            margin: 0 auto 1.5rem auto;
         }
 
-        @keyframes rotation {
-            0% {
-                transform: rotate(0deg);
-            }
-
+        @keyframes spin {
             100% {
                 transform: rotate(360deg);
             }
         }
 
+        #progress-msg {
+            transition: opacity 0.3s ease;
+            font-weight: 600;
+            font-size: 1.15rem;
+            color: var(--text-main);
+            height: 1.5em;
+            /* Prevent jump */
+        }
+
+        .progress-sub {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 0.5rem;
+        }
+
         /* Result State */
         .result-wrapper {
             display: none;
-            margin-top: 2rem;
-            animation: fadeIn 0.5s ease;
+            padding: 1rem 0;
+            animation: slideUp 0.4s ease forwards;
         }
 
-        @keyframes fadeIn {
+        @keyframes slideUp {
             from {
                 opacity: 0;
                 transform: translateY(10px);
@@ -318,119 +322,195 @@
             }
         }
 
-        .success-icon {
-            width: 64px;
-            height: 64px;
+        .success-icon-container {
+            width: 72px;
+            height: 72px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem auto;
+        }
+
+        .success-icon-container svg {
+            width: 36px;
+            height: 36px;
             fill: var(--success);
-            margin-bottom: 1rem;
         }
 
-        .download-btn {
-            background: linear-gradient(135deg, var(--secondary), #2563eb);
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.5);
-            display: inline-block;
-            text-decoration: none;
-            margin-top: 1rem;
+        .result-wrapper h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
         }
 
-        .download-btn:hover {
-            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.6);
+        .result-wrapper p {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
         }
 
         .reset-link {
-            display: block;
+            display: inline-block;
             margin-top: 1.5rem;
             color: var(--text-muted);
             text-decoration: none;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
+            font-weight: 500;
             transition: color 0.2s ease;
         }
 
         .reset-link:hover {
-            color: white;
-            text-decoration: underline;
+            color: var(--text-main);
+        }
+
+        /* Features Section */
+        .features {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.25rem 2rem;
+            margin-top: 2rem;
+            opacity: 0.8;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .feature-item svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--success);
         }
 
         .error-msg {
             color: var(--error);
+            background: rgba(239, 68, 68, 0.1);
+            padding: 1rem;
+            border-radius: 10px;
             margin-top: 1rem;
             display: none;
+            font-weight: 500;
             font-size: 0.95rem;
-            background: rgba(239, 68, 68, 0.1);
-            padding: 0.8rem;
-            border-radius: 8px;
-        }
-
-        /* Paper Rain Canvas */
-        #paper-rain {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 1;
-            pointer-events: none;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="ambient-glow"></div>
-    <div class="ambient-glow blue"></div>
+    <div class="bg-layer"></div>
 
-    <!-- Paper Rain Canvas -->
-    <canvas id="paper-rain"></canvas>
+    <div class="container">
+        <div class="card" id="main-card">
 
-    <div class="container" id="main-container">
-        <div class="header">
-            <img src="/static/images/logo.png" alt="AISECT AL LEARN Logo"
-                onerror="this.src='../static/images/logo.png'">
-            <h1>Flip-Book Formatter</h1>
-            <p>Transform raw Word documents into perfectly aligned flip-book chapters.</p>
-        </div>
-
-        <div id="upload-form">
-            <div class="drop-zone" id="drop-zone">
-                <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path
-                        d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.36 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
+            <div class="header">
+                <!-- Using a generic placeholder icon if logo isn't present to maintain aesthetic -->
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                    style="margin: 0 auto 1.5rem auto; display: block;">
+                    <rect x="3" y="3" width="18" height="18" rx="4" fill="var(--primary)" fill-opacity="0.1"
+                        stroke="var(--primary)" stroke-width="2" />
+                    <path d="M7 8H17M7 12H13M7 16H10" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" />
                 </svg>
-                <div class="drop-zone-text">Drag & Drop your .docx file here</div>
-                <div class="drop-zone-subtext">or click to browse from your computer</div>
-                <input type="file" id="file-input" name="file" accept=".docx">
+                <h1>Flip-Book Formatter</h1>
+                <p class="subtitle">Convert raw Word documents into perfect, publication-ready flip-book chapters.</p>
             </div>
 
-            <div class="file-status" id="file-status">
-                <span class="file-name" id="file-name">No file selected</span>
-                <span id="remove-file"
-                    style="cursor: pointer; color: var(--text-muted); font-size: 1.2rem;">&times;</span>
+            <!-- Upload View -->
+            <div id="upload-view">
+                <div class="drop-zone" id="drop-zone">
+                    <div class="icon-container">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path
+                                d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.36 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
+                        </svg>
+                    </div>
+                    <div class="drop-title">Drag & drop your .docx file here</div>
+                    <div class="drop-subtitle">or click to browse from your computer</div>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="document.getElementById('file-input').click()">Browse Files</button>
+                    <input type="file" id="file-input" name="file" accept=".docx">
+                </div>
+
+                <div class="file-status" id="file-status">
+                    <div class="file-info">
+                        <div class="file-name">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                <path
+                                    d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
+                            </svg>
+                            <span id="file-name-text">No file selected</span>
+                        </div>
+                        <div class="remove-file" id="remove-file" title="Remove file">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
+                                <path
+                                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary" id="submit-btn" onclick="submitDoc(event)">Process
+                        Document</button>
+                </div>
+
+                <div class="error-msg" id="error-msg"></div>
             </div>
 
-            <div class="error-msg" id="error-msg"></div>
+            <!-- Progress View -->
+            <div class="progress-wrapper" id="progress-wrapper">
+                <div class="spinner"></div>
+                <div id="progress-msg">Analyzing document structure...</div>
+                <p class="progress-sub">This usually takes a few seconds.</p>
+            </div>
 
-            <button type="button" class="btn" id="submit-btn" onclick="submitDoc(event)">Format Document</button>
+            <!-- Success View -->
+            <div class="result-wrapper" id="result-wrapper">
+                <div class="success-icon-container">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                    </svg>
+                </div>
+                <h2>Document Ready</h2>
+                <p>Your cleanly formatted flip-book chapter is ready for download.</p>
+
+                <a href="#" class="btn btn-primary" id="download-link">Download Formatted File</a>
+                <br>
+                <a href="#" class="reset-link" id="reset-btn">Format another file</a>
+            </div>
+
         </div>
 
-        <div class="progress-wrapper" id="progress-wrapper">
-            <span class="loader"></span>
-            <div class="progress-text">Applying strict formatting rules...</div>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">This usually takes a few seconds.</p>
-        </div>
-
-        <div class="result-wrapper" id="result-wrapper">
-            <svg class="success-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path
-                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-            </svg>
-            <h2>Document Formatted!</h2>
-            <p style="color: var(--text-muted); margin-top: 0.5rem; margin-bottom: 1.5rem;">Your document is ready for
-                flip-book conversion.</p>
-
-            <a href="#" class="btn download-btn" id="download-link" style="display: inline-block; width: 100%;">Download
-                Formatted Chapter</a>
-
-            <a href="#" class="reset-link" id="reset-btn">Format another file</a>
+        <!-- Features Bottom Section -->
+        <div class="features">
+            <div class="feature-item">
+                <svg viewBox="0 0 24 24">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                </svg>
+                Fix heading numbering
+            </div>
+            <div class="feature-item">
+                <svg viewBox="0 0 24 24">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                </svg>
+                Convert manual bullets
+            </div>
+            <div class="feature-item">
+                <svg viewBox="0 0 24 24">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                </svg>
+                Reset numbering lists
+            </div>
+            <div class="feature-item">
+                <svg viewBox="0 0 24 24">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                </svg>
+                Ready for flip-book
+            </div>
         </div>
     </div>
 
@@ -438,22 +518,26 @@
         const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('file-input');
         const fileStatus = document.getElementById('file-status');
-        const fileNameDisplay = document.getElementById('file-name');
+        const fileNameDisplay = document.getElementById('file-name-text');
         const removeFileBtn = document.getElementById('remove-file');
-        const submitBtn = document.getElementById('submit-btn');
-        const uploadForm = document.getElementById('upload-form');
+        const uploadView = document.getElementById('upload-view');
         const errorMsg = document.getElementById('error-msg');
-
-        const mainContainer = document.getElementById('main-container');
         const progressWrapper = document.getElementById('progress-wrapper');
+        const progressMsg = document.getElementById('progress-msg');
         const resultWrapper = document.getElementById('result-wrapper');
         const downloadLink = document.getElementById('download-link');
         const resetBtn = document.getElementById('reset-btn');
 
         let selectedFile = null;
+        let messageInterval = null;
 
-        // Click to upload
-        dropZone.addEventListener('click', () => fileInput.click());
+        const messages = [
+            "Analyzing document structure...",
+            "Fixing headings and spacing...",
+            "Converting manual points to real lists...",
+            "Applying flip-book templates...",
+            "Finalizing formatting..."
+        ];
 
         // Drag events
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -467,27 +551,15 @@
         }
 
         ['dragenter', 'dragover'].forEach(eventName => {
-            dropZone.addEventListener(eventName, highlight, false);
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
         });
 
         ['dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, unhighlight, false);
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
         });
 
-        function highlight() { dropZone.classList.add('dragover'); }
-        function unhighlight() { dropZone.classList.remove('dragover'); }
-
-        dropZone.addEventListener('drop', handleDrop, false);
-
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            handleFiles(files);
-        }
-
-        fileInput.addEventListener('change', function () {
-            handleFiles(this.files);
-        });
+        dropZone.addEventListener('drop', (e) => handleFiles(e.dataTransfer.files), false);
+        fileInput.addEventListener('change', function () { handleFiles(this.files); });
 
         function handleFiles(files) {
             if (files.length > 0) {
@@ -500,63 +572,66 @@
                 selectedFile = file;
                 fileNameDisplay.textContent = file.name;
 
-                // Update UI state
                 dropZone.style.display = 'none';
                 fileStatus.style.display = 'flex';
-                submitBtn.style.display = 'block';
                 hideError();
             }
         }
 
         removeFileBtn.addEventListener('click', resetFormUI);
 
+        function startProgressMessages() {
+            let idx = 0;
+            progressMsg.textContent = messages[0];
+            progressMsg.style.opacity = 1;
+
+            messageInterval = setInterval(() => {
+                idx = (idx + 1) % messages.length;
+                progressMsg.style.opacity = 0;
+                setTimeout(() => {
+                    progressMsg.textContent = messages[idx];
+                    progressMsg.style.opacity = 1;
+                }, 300);
+            }, 2500);
+        }
+
+        function stopProgressMessages() {
+            if (messageInterval) clearInterval(messageInterval);
+        }
+
         async function submitDoc(e) {
             if (e) e.preventDefault();
             if (!selectedFile) return;
 
-            // Transition to loading state
-            fileStatus.style.display = 'none';
-            submitBtn.style.display = 'none';
-            errorMsg.style.display = 'none';
+            uploadView.style.display = 'none';
             progressWrapper.style.display = 'block';
+            startProgressMessages();
 
             const formData = new FormData();
             formData.append('file', selectedFile);
 
             try {
-                // Determine the base URL depending on how the frontend is opened
-                const fetchUrl = '/upload';
-
-                const response = await fetch(fetchUrl, {
-                    method: 'POST',
-                    body: formData
-                });
-
+                const response = await fetch('/upload', { method: 'POST', body: formData });
                 let result;
-                const isJson = response.headers.get('content-type')?.includes('application/json');
 
-                if (isJson) {
+                if (response.headers.get('content-type')?.includes('application/json')) {
                     result = await response.json();
                 } else {
-                    const text = await response.text();
-                    throw new Error(`Server returned ${response.status}: ${response.statusText}. Target: ${fetchUrl}. Did you start the Python server backend?`);
+                    throw new Error(`Server error: ${response.statusText}`);
                 }
 
                 if (response.ok && result.success) {
-                    // Transition to success state
+                    stopProgressMessages();
                     progressWrapper.style.display = 'none';
                     resultWrapper.style.display = 'block';
-
-                    // Setup download link
                     downloadLink.href = `/download/${result.job_id}/${encodeURIComponent(result.filename)}`;
                 } else {
-                    throw new Error(result.error || 'Unknown error occurred during formatting');
+                    throw new Error(result.error || 'Formatting failed.');
                 }
             } catch (err) {
-                // Transition to error state
+                stopProgressMessages();
                 progressWrapper.style.display = 'none';
-                fileStatus.style.display = 'flex';
-                submitBtn.style.display = 'block';
+                uploadView.style.display = 'block';
                 showError(err.message);
             }
         }
@@ -569,13 +644,11 @@
         function resetFormUI() {
             selectedFile = null;
             fileInput.value = '';
-
-            dropZone.style.display = 'block';
+            uploadView.style.display = 'block';
+            dropZone.style.display = 'flex';
             fileStatus.style.display = 'none';
-            submitBtn.style.display = 'none';
             resultWrapper.style.display = 'none';
             progressWrapper.style.display = 'none';
-
             hideError();
         }
 
@@ -587,147 +660,6 @@
         function hideError() {
             errorMsg.style.display = 'none';
         }
-    </script>
-
-    <!-- Paper Rain Particle System -->
-    <script>
-        (function () {
-            const canvas = document.getElementById('paper-rain');
-            const ctx = canvas.getContext('2d');
-            const PAPER_COUNT = 35;
-            const WIND_RADIUS = 180;
-            const WIND_FORCE = 8;
-            let W, H;
-            let mouseX = -9999, mouseY = -9999;
-
-            function resize() {
-                W = canvas.width = window.innerWidth;
-                H = canvas.height = window.innerHeight;
-            }
-            window.addEventListener('resize', resize);
-            resize();
-
-            // Track mouse globally (canvas has pointer-events:none, so we listen on document)
-            document.addEventListener('mousemove', e => {
-                mouseX = e.clientX;
-                mouseY = e.clientY;
-            });
-            document.addEventListener('mouseleave', () => {
-                mouseX = -9999;
-                mouseY = -9999;
-            });
-
-            // Paper particle class
-            class Paper {
-                constructor() { this.reset(true); }
-
-                reset(initial) {
-                    this.w = 12 + Math.random() * 14; // width 12-26px
-                    this.h = this.w * (1.3 + Math.random() * 0.4); // slightly taller than wide
-                    this.x = Math.random() * W;
-                    this.y = initial ? Math.random() * H : -this.h - Math.random() * 60;
-                    this.vy = 0.4 + Math.random() * 0.8; // fall speed
-                    this.vx = 0;
-                    this.windVx = 0; // wind velocity from cursor
-                    this.windVy = 0;
-                    this.angle = Math.random() * Math.PI * 2;
-                    this.spin = (Math.random() - 0.5) * 0.02; // rotation speed
-                    this.foldAngle = Math.random() * 0.4 + 0.1; // fold amount (0.1 to 0.5)
-                    this.opacity = 0.3 + Math.random() * 0.5;
-                    this.drift = (Math.random() - 0.5) * 0.3; // gentle horizontal drift
-                }
-
-                update() {
-                    // Cursor wind effect
-                    const dx = this.x - mouseX;
-                    const dy = this.y - mouseY;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < WIND_RADIUS && dist > 0) {
-                        const force = (1 - dist / WIND_RADIUS) * WIND_FORCE;
-                        this.windVx += (dx / dist) * force;
-                        this.windVy += (dy / dist) * force;
-                        this.spin += (Math.random() - 0.5) * 0.05; // tumble more near cursor
-                    }
-
-                    // Apply wind with damping
-                    this.windVx *= 0.92;
-                    this.windVy *= 0.92;
-
-                    this.x += this.drift + this.windVx;
-                    this.y += this.vy + this.windVy;
-                    this.angle += this.spin;
-
-                    // Wrap around edges
-                    if (this.y > H + this.h) this.reset(false);
-                    if (this.x < -50) this.x = W + 50;
-                    if (this.x > W + 50) this.x = -50;
-                }
-
-                draw() {
-                    ctx.save();
-                    ctx.translate(this.x, this.y);
-                    ctx.rotate(this.angle);
-                    ctx.globalAlpha = this.opacity;
-
-                    const hw = this.w / 2;
-                    const hh = this.h / 2;
-                    const foldX = hw * this.foldAngle; // fold offset
-
-                    // Back half (slightly darker, the fold shadow)
-                    ctx.fillStyle = 'rgba(200, 210, 220, 0.6)';
-                    ctx.beginPath();
-                    ctx.moveTo(-hw, -hh);
-                    ctx.lineTo(-hw + foldX, -hh + 2);
-                    ctx.lineTo(-hw + foldX, hh - 2);
-                    ctx.lineTo(-hw, hh);
-                    ctx.closePath();
-                    ctx.fill();
-
-                    // Front face (bright white paper)
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-                    ctx.beginPath();
-                    ctx.moveTo(-hw + foldX, -hh + 2);
-                    ctx.lineTo(hw, -hh);
-                    ctx.lineTo(hw, hh);
-                    ctx.lineTo(-hw + foldX, hh - 2);
-                    ctx.closePath();
-                    ctx.fill();
-
-                    // Fold crease line
-                    ctx.strokeStyle = 'rgba(180, 190, 200, 0.5)';
-                    ctx.lineWidth = 0.5;
-                    ctx.beginPath();
-                    ctx.moveTo(-hw + foldX, -hh + 2);
-                    ctx.lineTo(-hw + foldX, hh - 2);
-                    ctx.stroke();
-
-                    // Tiny text lines on the front face
-                    ctx.fillStyle = 'rgba(150, 160, 175, 0.4)';
-                    const lineY = -hh + 6;
-                    for (let i = 0; i < 3; i++) {
-                        const lw = (hw - foldX) * (0.5 + Math.random() * 0.4);
-                        ctx.fillRect(-hw + foldX + 3, lineY + i * 4, lw, 1.5);
-                    }
-
-                    ctx.restore();
-                }
-            }
-
-            // Create papers
-            const papers = [];
-            for (let i = 0; i < PAPER_COUNT; i++) papers.push(new Paper());
-
-            // Animation loop
-            function animate() {
-                ctx.clearRect(0, 0, W, H);
-                for (const p of papers) {
-                    p.update();
-                    p.draw();
-                }
-                requestAnimationFrame(animate);
-            }
-            animate();
-        })();
     </script>
 </body>
 
