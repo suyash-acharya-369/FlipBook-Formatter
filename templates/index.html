@@ -361,281 +361,15 @@
             border-radius: 8px;
         }
 
-        /* Ambient Page Folding Animations */
-        .page-fold-container {
+        /* Paper Rain Canvas */
+        #paper-rain {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            overflow: hidden;
             z-index: 1;
-            /* Between ambient glow and main container */
             pointer-events: none;
-            perspective: 2500px;
-            /* Deep space perspective */
-        }
-
-        .floating-page {
-            position: absolute;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 4px 16px 16px 4px;
-            box-shadow:
-                inset 15px 0 30px rgba(255, 255, 255, 0.1),
-                0 8px 32px rgba(0, 0, 0, 0.1);
-            transform-origin: left center;
-            transform-style: preserve-3d;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            overflow: hidden;
-        }
-
-        /* Typography inside the floating pages */
-        .page-content {
-            opacity: 0.7;
-            color: #475569;
-            /* Slate grey for text on white glass */
-            font-family: 'Outfit', sans-serif;
-            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
-        }
-
-        .page-content h3 {
-            font-size: 1rem;
-            margin-bottom: 0.3rem;
-            border-bottom: 1px solid rgba(71, 85, 105, 0.2);
-            padding-bottom: 0.3rem;
-        }
-
-        .page-content p {
-            font-size: 0.6rem;
-            line-height: 1.4;
-            text-align: justify;
-        }
-
-        .page-content .line {
-            height: 4px;
-            background: rgba(71, 85, 105, 0.15);
-            border-radius: 2px;
-            margin-bottom: 0.5rem;
-            width: 100%;
-        }
-
-        .page-content .line.short {
-            width: 60%;
-        }
-
-        .page-content .line.med {
-            width: 85%;
-        }
-
-        .page-1 {
-            top: 10%;
-            left: -5%;
-            width: 15vw;
-            height: 22vw;
-            max-width: 250px;
-            max-height: 350px;
-            animation: foldPage1 12s infinite ease-in-out alternate;
-        }
-
-        .page-2 {
-            bottom: -5%;
-            right: 2%;
-            width: 12vw;
-            height: 18vw;
-            max-width: 200px;
-            max-height: 300px;
-            animation: foldPage2 16s infinite ease-in-out alternate-reverse;
-        }
-
-        .page-3 {
-            top: 5%;
-            right: 15%;
-            width: 10vw;
-            height: 15vw;
-            max-width: 150px;
-            max-height: 220px;
-            animation: foldPage3 14s infinite ease-in-out alternate;
-        }
-
-        .page-4 {
-            bottom: 15%;
-            left: 2%;
-            width: 14vw;
-            height: 20vw;
-            max-width: 220px;
-            max-height: 320px;
-            animation: foldPage4 18s infinite ease-in-out alternate-reverse;
-            z-index: 0;
-        }
-
-        .page-5 {
-            top: 40%;
-            left: 10%;
-            width: 8vw;
-            height: 12vw;
-            max-width: 120px;
-            max-height: 180px;
-            animation: foldPage5 20s infinite ease-in-out alternate;
-            z-index: -1;
-        }
-
-        .page-6 {
-            top: 25%;
-            right: -2%;
-            width: 16vw;
-            height: 24vw;
-            max-width: 280px;
-            max-height: 400px;
-            animation: foldPage6 15s infinite ease-in-out alternate;
-            z-index: 0;
-        }
-
-        .page-7 {
-            bottom: 10%;
-            left: 20%;
-            width: 9vw;
-            height: 13vw;
-            max-width: 140px;
-            max-height: 200px;
-            animation: foldPage7 17s infinite ease-in-out alternate-reverse;
-            z-index: -2;
-        }
-
-        .page-8 {
-            top: -5%;
-            left: 25%;
-            width: 11vw;
-            height: 16vw;
-            max-width: 180px;
-            max-height: 250px;
-            animation: foldPage8 19s infinite ease-in-out alternate;
-        }
-
-        .page-9 {
-            bottom: 25%;
-            right: 10%;
-            width: 13vw;
-            height: 19vw;
-            max-width: 210px;
-            max-height: 300px;
-            animation: foldPage9 22s infinite ease-in-out alternate-reverse;
-        }
-
-        .page-10 {
-            top: 55%;
-            right: 25%;
-            width: 7vw;
-            height: 10vw;
-            max-width: 100px;
-            max-height: 150px;
-            animation: foldPage10 13s infinite ease-in-out alternate;
-            z-index: -3;
-        }
-
-        @keyframes foldPage1 {
-            0% {
-                transform: rotateY(15deg) rotateX(15deg) rotateZ(-10deg) translateZ(-200px);
-            }
-
-            100% {
-                transform: rotateY(70deg) rotateX(5deg) rotateZ(5deg) translateZ(-100px);
-            }
-        }
-
-        @keyframes foldPage2 {
-            0% {
-                transform: rotateY(-20deg) rotateX(-15deg) rotateZ(10deg) translateZ(-300px);
-            }
-
-            100% {
-                transform: rotateY(-80deg) rotateX(-5deg) rotateZ(-5deg) translateZ(-150px);
-            }
-        }
-
-        @keyframes foldPage3 {
-            0% {
-                transform: rotateY(-10deg) rotateX(25deg) rotateZ(-15deg) translateZ(-250px);
-            }
-
-            100% {
-                transform: rotateY(55deg) rotateX(10deg) rotateZ(20deg) translateZ(-180px);
-            }
-        }
-
-        @keyframes foldPage4 {
-            0% {
-                transform: rotateY(20deg) rotateX(-25deg) rotateZ(15deg) translateZ(-400px);
-            }
-
-            100% {
-                transform: rotateY(85deg) rotateX(-10deg) rotateZ(-10deg) translateZ(-200px);
-            }
-        }
-
-        @keyframes foldPage5 {
-            0% {
-                transform: rotateY(-30deg) rotateX(10deg) rotateZ(30deg) translateZ(-500px);
-            }
-
-            100% {
-                transform: rotateY(-90deg) rotateX(-20deg) rotateZ(-20deg) translateZ(-300px);
-            }
-        }
-
-        @keyframes foldPage6 {
-            0% {
-                transform: rotateY(-15deg) rotateX(-15deg) rotateZ(20deg) translateZ(-350px);
-            }
-
-            100% {
-                transform: rotateY(-70deg) rotateX(10deg) rotateZ(-10deg) translateZ(-150px);
-            }
-        }
-
-        @keyframes foldPage7 {
-            0% {
-                transform: rotateY(25deg) rotateX(20deg) rotateZ(5deg) translateZ(-600px);
-            }
-
-            100% {
-                transform: rotateY(95deg) rotateX(-15deg) rotateZ(-25deg) translateZ(-400px);
-            }
-        }
-
-        @keyframes foldPage8 {
-            0% {
-                transform: rotateY(5deg) rotateX(-30deg) rotateZ(-20deg) translateZ(-450px);
-            }
-
-            100% {
-                transform: rotateY(60deg) rotateX(20deg) rotateZ(15deg) translateZ(-250px);
-            }
-        }
-
-        @keyframes foldPage9 {
-            0% {
-                transform: rotateY(-25deg) rotateX(15deg) rotateZ(-5deg) translateZ(-550px);
-            }
-
-            100% {
-                transform: rotateY(-85deg) rotateX(-25deg) rotateZ(10deg) translateZ(-350px);
-            }
-        }
-
-        @keyframes foldPage10 {
-            0% {
-                transform: rotateY(10deg) rotateX(-10deg) rotateZ(-30deg) translateZ(-700px);
-            }
-
-            100% {
-                transform: rotateY(50deg) rotateX(30deg) rotateZ(5deg) translateZ(-500px);
-            }
         }
     </style>
 </head>
@@ -645,96 +379,8 @@
     <div class="ambient-glow"></div>
     <div class="ambient-glow blue"></div>
 
-    <div class="page-fold-container">
-        <div class="floating-page page-1">
-            <div class="page-content">
-                <h3>Chapter 1: E-Learning</h3>
-                <p>Digital formatting pipelines.</p>
-                <div style="margin-top: 0.5rem;">
-                    <div class="line"></div>
-                    <div class="line med"></div>
-                </div>
-            </div>
-        </div>
-        <div class="floating-page page-2">
-            <div class="page-content">
-                <h3>Pedagogical Design</h3>
-                <div class="line med" style="margin-top: 0.5rem;"></div>
-                <div class="line"></div>
-            </div>
-        </div>
-        <div class="floating-page page-3">
-            <div class="page-content">
-                <h3>Knowledge</h3>
-                <p>1. Acquisition</p>
-                <div
-                    style="margin-top: 0.5rem; border: 1px dashed rgba(255,255,255,0.3); padding: 0.5rem; border-radius: 4px;">
-                    <div class="line med"></div>
-                    <div class="line short"></div>
-                </div>
-            </div>
-        </div>
-        <div class="floating-page page-4">
-            <div class="page-content">
-                <h3>Accessibility</h3>
-                <p>Ensuring global reach.</p>
-                <div class="line"></div>
-            </div>
-        </div>
-        <div class="floating-page page-5">
-            <div class="page-content">
-                <div class="line"></div>
-                <div class="line short"></div>
-            </div>
-        </div>
-
-        <!-- Group 3 (New Pages) -->
-        <div class="floating-page page-6">
-            <div class="page-content">
-                <h3>Responsive Layouts</h3>
-                <p>Adapting content dynamically across varied screen sizes.</p>
-                <div style="margin-top: 0.5rem;">
-                    <div class="line"></div>
-                    <div class="line med"></div>
-                    <div class="line"></div>
-                </div>
-            </div>
-        </div>
-        <div class="floating-page page-7">
-            <div class="page-content">
-                <h3>Assessment</h3>
-                <div class="line short" style="margin-top: 0.5rem;"></div>
-                <div class="line med"></div>
-            </div>
-        </div>
-
-        <!-- Group 4 (New Small Pages) -->
-        <div class="floating-page page-8">
-            <div class="page-content">
-                <h3>Chapter 2: Methods</h3>
-                <div class="line"></div>
-                <div class="line"></div>
-                <p>Summary notes.</p>
-            </div>
-        </div>
-        <div class="floating-page page-9">
-            <div class="page-content">
-                <h3>Visual Guides</h3>
-                <div
-                    style="width: 100%; height: 30px; background: rgba(71,85,105,0.1); border-radius: 4px; margin-bottom: 0.5rem;">
-                </div>
-                <div class="line"></div>
-                <div class="line med"></div>
-            </div>
-        </div>
-        <div class="floating-page page-10">
-            <div class="page-content">
-                <div class="line short"></div>
-                <div class="line short"></div>
-                <div class="line"></div>
-            </div>
-        </div>
-    </div>
+    <!-- Paper Rain Canvas -->
+    <canvas id="paper-rain"></canvas>
 
     <div class="container" id="main-container">
         <div class="header">
@@ -941,6 +587,147 @@
         function hideError() {
             errorMsg.style.display = 'none';
         }
+    </script>
+
+    <!-- Paper Rain Particle System -->
+    <script>
+        (function () {
+            const canvas = document.getElementById('paper-rain');
+            const ctx = canvas.getContext('2d');
+            const PAPER_COUNT = 35;
+            const WIND_RADIUS = 180;
+            const WIND_FORCE = 8;
+            let W, H;
+            let mouseX = -9999, mouseY = -9999;
+
+            function resize() {
+                W = canvas.width = window.innerWidth;
+                H = canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            // Track mouse globally (canvas has pointer-events:none, so we listen on document)
+            document.addEventListener('mousemove', e => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+            document.addEventListener('mouseleave', () => {
+                mouseX = -9999;
+                mouseY = -9999;
+            });
+
+            // Paper particle class
+            class Paper {
+                constructor() { this.reset(true); }
+
+                reset(initial) {
+                    this.w = 12 + Math.random() * 14; // width 12-26px
+                    this.h = this.w * (1.3 + Math.random() * 0.4); // slightly taller than wide
+                    this.x = Math.random() * W;
+                    this.y = initial ? Math.random() * H : -this.h - Math.random() * 60;
+                    this.vy = 0.4 + Math.random() * 0.8; // fall speed
+                    this.vx = 0;
+                    this.windVx = 0; // wind velocity from cursor
+                    this.windVy = 0;
+                    this.angle = Math.random() * Math.PI * 2;
+                    this.spin = (Math.random() - 0.5) * 0.02; // rotation speed
+                    this.foldAngle = Math.random() * 0.4 + 0.1; // fold amount (0.1 to 0.5)
+                    this.opacity = 0.3 + Math.random() * 0.5;
+                    this.drift = (Math.random() - 0.5) * 0.3; // gentle horizontal drift
+                }
+
+                update() {
+                    // Cursor wind effect
+                    const dx = this.x - mouseX;
+                    const dy = this.y - mouseY;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < WIND_RADIUS && dist > 0) {
+                        const force = (1 - dist / WIND_RADIUS) * WIND_FORCE;
+                        this.windVx += (dx / dist) * force;
+                        this.windVy += (dy / dist) * force;
+                        this.spin += (Math.random() - 0.5) * 0.05; // tumble more near cursor
+                    }
+
+                    // Apply wind with damping
+                    this.windVx *= 0.92;
+                    this.windVy *= 0.92;
+
+                    this.x += this.drift + this.windVx;
+                    this.y += this.vy + this.windVy;
+                    this.angle += this.spin;
+
+                    // Wrap around edges
+                    if (this.y > H + this.h) this.reset(false);
+                    if (this.x < -50) this.x = W + 50;
+                    if (this.x > W + 50) this.x = -50;
+                }
+
+                draw() {
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    ctx.rotate(this.angle);
+                    ctx.globalAlpha = this.opacity;
+
+                    const hw = this.w / 2;
+                    const hh = this.h / 2;
+                    const foldX = hw * this.foldAngle; // fold offset
+
+                    // Back half (slightly darker, the fold shadow)
+                    ctx.fillStyle = 'rgba(200, 210, 220, 0.6)';
+                    ctx.beginPath();
+                    ctx.moveTo(-hw, -hh);
+                    ctx.lineTo(-hw + foldX, -hh + 2);
+                    ctx.lineTo(-hw + foldX, hh - 2);
+                    ctx.lineTo(-hw, hh);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Front face (bright white paper)
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+                    ctx.beginPath();
+                    ctx.moveTo(-hw + foldX, -hh + 2);
+                    ctx.lineTo(hw, -hh);
+                    ctx.lineTo(hw, hh);
+                    ctx.lineTo(-hw + foldX, hh - 2);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Fold crease line
+                    ctx.strokeStyle = 'rgba(180, 190, 200, 0.5)';
+                    ctx.lineWidth = 0.5;
+                    ctx.beginPath();
+                    ctx.moveTo(-hw + foldX, -hh + 2);
+                    ctx.lineTo(-hw + foldX, hh - 2);
+                    ctx.stroke();
+
+                    // Tiny text lines on the front face
+                    ctx.fillStyle = 'rgba(150, 160, 175, 0.4)';
+                    const lineY = -hh + 6;
+                    for (let i = 0; i < 3; i++) {
+                        const lw = (hw - foldX) * (0.5 + Math.random() * 0.4);
+                        ctx.fillRect(-hw + foldX + 3, lineY + i * 4, lw, 1.5);
+                    }
+
+                    ctx.restore();
+                }
+            }
+
+            // Create papers
+            const papers = [];
+            for (let i = 0; i < PAPER_COUNT; i++) papers.push(new Paper());
+
+            // Animation loop
+            function animate() {
+                ctx.clearRect(0, 0, W, H);
+                for (const p of papers) {
+                    p.update();
+                    p.draw();
+                }
+                requestAnimationFrame(animate);
+            }
+            animate();
+        })();
     </script>
 </body>
 
