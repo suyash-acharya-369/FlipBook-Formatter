@@ -775,8 +775,30 @@ def format_document(input_path, output_path):
                     safe_stripped = full_text[:60].encode('ascii', 'replace').decode('ascii')
                     print(f"    -> BULLET STRIPPED: '{safe_stripped}'")
                 
-                # 2) If not a bullet, check for numbered list prefixes
-                if not is_bullet:
+            # ─────────────────────────────────────────────────────────────────
+            # 2) If not a bullet, check for numbered list prefixes.
+            #    IMPORTANT: Guard against mistaking numbered headings for lists.
+            #    A numbered heading looks like "1. Title" — short, title-case,
+            #    no trailing period.  We skip list detection for those.
+            # ─────────────────────────────────────────────────────────────────
+            if not is_bullet:
+                # Heuristic: is this a numbered *heading* rather than a list item?
+                _m = re.match(r'^(\d+)\.\s+(.+)$', full_text)
+                _is_numbered_heading = False
+                if _m:
+                    _body = _m.group(2).strip()
+                    _word_count = len(_body.split())
+                    # Treat as a heading if:
+                    #   - 1 to 9 words
+                    #   - does NOT end with a sentence-ending period (allow abbreviations)
+                    #   - first word is title-case or all-caps (not a lowercase sentence start)
+                    _first_word = _body.split()[0] if _body else ''
+                    _starts_upper = _first_word and (_first_word[0].isupper() or _first_word.isupper())
+                    _ends_sentence = _body.rstrip().endswith('.') and not _body.rstrip().endswith('...')
+                    if _word_count <= 9 and not _ends_sentence and _starts_upper:
+                        _is_numbered_heading = True
+                
+                if not _is_numbered_heading:
                     full_text, runs, list_type = strip_list_prefix(full_text, runs)
                     if list_type:
                         safe_stripped = full_text[:60].encode('ascii', 'replace').decode('ascii')
@@ -826,9 +848,13 @@ def format_document(input_path, output_path):
     for item in items:
         ct = item['type']
         
-        # Reset lists on headings
-        if ct in ('h1', 'h2', 'h3', 'h4', 'h2_no_num'):
-            active_lists.clear()
+        # ──────────────────────────────────────────────────────────────────────
+        # NOTE: We do NOT clear active_lists on headings any more.
+        # Clearing caused every list that followed a heading to restart at "1."
+        # Instead we only create a new numId the first time a list_type is seen.
+        # A list restarts naturally only when normal body paragraphs interrupt it
+        # (handled below at the else: active_lists.clear() branch).
+        # ──────────────────────────────────────────────────────────────────────
         
         if ct == 'h1':
             p = doc.add_paragraph()
