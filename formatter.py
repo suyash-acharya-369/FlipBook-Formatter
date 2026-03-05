@@ -726,7 +726,7 @@ def format_document(input_path, output_path):
                     segments = num_part.split('.')
                     seg_count = len(segments)
                     
-                    if seg_count >= 2:  # X.Y, X.Y.Z, X.Y.Z.W
+                    if seg_count >= 2:  # X.Y, X.Y.Z, X.Y.Z.W → h2/h3/h4
                         if seg_count == 2:
                             ctype = 'h2'
                         elif seg_count == 3:
@@ -738,8 +738,31 @@ def format_document(input_path, output_path):
                         stripped_title = heading_match.group(2).strip()
                         if stripped_title:
                             full_text = stripped_title
-                            # Also strip from runs
-                            prefix_len = len(num_part) + (len(heading_match.group(0)) - len(heading_match.group(1)) - len(heading_match.group(2)))
+                            chars_to_strip = len(heading_match.group(0)) - len(heading_match.group(2))
+                            for rc in runs:
+                                if chars_to_strip <= 0: break
+                                if len(rc['text']) <= chars_to_strip:
+                                    chars_to_strip -= len(rc['text'])
+                                    rc['text'] = ''
+                                else:
+                                    rc['text'] = rc['text'][chars_to_strip:].lstrip()
+                                    chars_to_strip = 0
+                            runs = [rc for rc in runs if rc['text']]
+                    
+                    elif seg_count == 1:  # X. Title — single-segment numbered heading
+                        # Only treat as h2 if it looks like a section title:
+                        #   - short (≤ 10 words)
+                        #   - does NOT end with a sentence-ending period  
+                        #   - title starts with an uppercase letter
+                        _title_body = heading_match.group(2).strip()
+                        _word_count = len(_title_body.split())
+                        _ends_sentence = (_title_body.rstrip().endswith('.')
+                                          and not _title_body.rstrip().endswith('...'))
+                        _starts_upper = bool(_title_body) and _title_body[0].isupper()
+                        if _title_body and _word_count <= 10 and not _ends_sentence and _starts_upper:
+                            ctype = 'h2'
+                            full_text = _title_body
+                            # Strip the numeric prefix from runs too
                             chars_to_strip = len(heading_match.group(0)) - len(heading_match.group(2))
                             for rc in runs:
                                 if chars_to_strip <= 0: break
@@ -764,7 +787,7 @@ def format_document(input_path, output_path):
             is_bullet = False
             list_type = None  # 'list_number', 'list_alpha', 'list_roman', or None
             if ctype == 'body' and full_text:
-                # Debug: print first char's Unicode codepoint so we can catch any missed bullets
+                # Debug: print first char's Unicode codepoint
                 first_char = full_text[0]
                 safe_text = full_text[:50].encode('ascii', 'replace').decode('ascii')
                 print(f"  BODY first_char=U+{ord(first_char):04X} text='{safe_text}'")
@@ -775,30 +798,10 @@ def format_document(input_path, output_path):
                     safe_stripped = full_text[:60].encode('ascii', 'replace').decode('ascii')
                     print(f"    -> BULLET STRIPPED: '{safe_stripped}'")
                 
-            # ─────────────────────────────────────────────────────────────────
-            # 2) If not a bullet, check for numbered list prefixes.
-            #    IMPORTANT: Guard against mistaking numbered headings for lists.
-            #    A numbered heading looks like "1. Title" — short, title-case,
-            #    no trailing period.  We skip list detection for those.
-            # ─────────────────────────────────────────────────────────────────
-            if not is_bullet:
-                # Heuristic: is this a numbered *heading* rather than a list item?
-                _m = re.match(r'^(\d+)\.\s+(.+)$', full_text)
-                _is_numbered_heading = False
-                if _m:
-                    _body = _m.group(2).strip()
-                    _word_count = len(_body.split())
-                    # Treat as a heading if:
-                    #   - 1 to 9 words
-                    #   - does NOT end with a sentence-ending period (allow abbreviations)
-                    #   - first word is title-case or all-caps (not a lowercase sentence start)
-                    _first_word = _body.split()[0] if _body else ''
-                    _starts_upper = _first_word and (_first_word[0].isupper() or _first_word.isupper())
-                    _ends_sentence = _body.rstrip().endswith('.') and not _body.rstrip().endswith('...')
-                    if _word_count <= 9 and not _ends_sentence and _starts_upper:
-                        _is_numbered_heading = True
-                
-                if not _is_numbered_heading:
+                # 2) If not a bullet, check for numbered list prefixes.
+                #    Single-segment headings (N. Short Title) were already promoted
+                #    to h2 above, so anything reaching here with N. is a real list item.
+                if not is_bullet:
                     full_text, runs, list_type = strip_list_prefix(full_text, runs)
                     if list_type:
                         safe_stripped = full_text[:60].encode('ascii', 'replace').decode('ascii')
