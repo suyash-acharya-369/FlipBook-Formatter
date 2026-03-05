@@ -21,6 +21,9 @@ WHITE  = RGBColor(255, 255, 255)
 # No hardcoded heading dictionaries — detection is purely structure-based
 # (numbering depth + bold formatting) so it works for ANY document.
 
+# Common bullet characters that flatten_numbering converts from native Word bullets
+BULLET_CHARS = re.compile(r'^[\u2022\u2023\u25CF\u25CB\u25AA\u25AB\u25B8\u25B9\u2043\u2013\u2014o\-\*]\s+')
+
 CONTENT_WIDTH_CM = 21.0 - 2 * 2.54
 CONTENT_WIDTH_EMU = int(CONTENT_WIDTH_CM * 360000)
 
@@ -95,6 +98,91 @@ def is_shape_content(elem):
     if elem.findall('.//' + WPG_WGP): return True
     if elem.findall('.//' + WPC_WPC): return True
     return False
+
+def set_bullet(para, indent_cm=1.27):
+    """Apply real MS Word bullet list formatting to a paragraph using XML numbering."""
+    pPr = para._p.get_or_add_pPr()
+    
+    # Create numbering properties for bullet
+    numPr = OxmlElement('w:numPr')
+    ilvl = OxmlElement('w:ilvl')
+    ilvl.set(qn('w:val'), '0')
+    numId = OxmlElement('w:numId')
+    numId.set(qn('w:val'), '1')  # Will use abstract numbering definition
+    numPr.append(ilvl)
+    numPr.append(numId)
+    pPr.insert(0, numPr)
+    
+    # Set left indent and hanging indent for bullet alignment
+    ind = pPr.find(qn('w:ind'))
+    if ind is None:
+        ind = OxmlElement('w:ind')
+        pPr.append(ind)
+    ind.set(qn('w:left'), str(int(indent_cm * 567)))   # 1.27cm in twips
+    ind.set(qn('w:hanging'), str(int(0.63 * 567)))      # hanging indent for bullet
+
+def ensure_bullet_numbering(doc):
+    """Ensure the document has a bullet list numbering definition (numId=1)."""
+    # Access or create numbering part
+    numbering_part = doc.part.numbering_part
+    numbering_elem = numbering_part._element
+    
+    # Check if abstractNum 0 already exists
+    existing = numbering_elem.findall(qn('w:abstractNum'))
+    has_abstract_0 = any(e.get(qn('w:abstractNumId')) == '0' for e in existing)
+    
+    if not has_abstract_0:
+        # Create abstract numbering definition for bullets
+        abstractNum = OxmlElement('w:abstractNum')
+        abstractNum.set(qn('w:abstractNumId'), '0')
+        
+        lvl = OxmlElement('w:lvl')
+        lvl.set(qn('w:ilvl'), '0')
+        
+        start = OxmlElement('w:start')
+        start.set(qn('w:val'), '1')
+        lvl.append(start)
+        
+        numFmt = OxmlElement('w:numFmt')
+        numFmt.set(qn('w:val'), 'bullet')
+        lvl.append(numFmt)
+        
+        lvlText = OxmlElement('w:lvlText')
+        lvlText.set(qn('w:val'), '\u2022')  # Standard bullet character •
+        lvl.append(lvlText)
+        
+        lvlJc = OxmlElement('w:lvlJc')
+        lvlJc.set(qn('w:val'), 'left')
+        lvl.append(lvlJc)
+        
+        # Set the bullet font to Symbol
+        rPr = OxmlElement('w:rPr')
+        rFonts = OxmlElement('w:rFonts')
+        rFonts.set(qn('w:ascii'), 'Symbol')
+        rFonts.set(qn('w:hAnsi'), 'Symbol')
+        rFonts.set(qn('w:hint'), 'default')
+        rPr.append(rFonts)
+        lvl.append(rPr)
+        
+        abstractNum.append(lvl)
+        # Insert before any w:num elements
+        nums = numbering_elem.findall(qn('w:num'))
+        if nums:
+            nums[0].addprevious(abstractNum)
+        else:
+            numbering_elem.append(abstractNum)
+    
+    # Check if num 1 already exists
+    existing_nums = numbering_elem.findall(qn('w:num'))
+    has_num_1 = any(e.get(qn('w:numId')) == '1' for e in existing_nums)
+    
+    if not has_num_1:
+        num = OxmlElement('w:num')
+        num.set(qn('w:numId'), '1')
+        abstractNumId = OxmlElement('w:abstractNumId')
+        abstractNumId.set(qn('w:val'), '0')
+        num.append(abstractNumId)
+        numbering_elem.append(num)
 
 def extract_safe_image(src_doc, inline_elem):
     if is_shape_content(inline_elem): return None
@@ -250,9 +338,27 @@ def format_document(input_path, output_path):
                 if ctype == 'body' and lower_text.startswith('fig'):
                     ctype = 'fig'
             
-            if safe_images and not full_text: ctype = 'img'
+            # ── Bullet detection: strip artifact chars and mark as bullet ──
+            is_bullet = False
+            bullet_match = BULLET_CHARS.match(full_text)
+            if bullet_match and ctype == 'body':
+                is_bullet = True
+                # Strip the bullet character from text and runs
+                bullet_prefix = bullet_match.group(0)
+                full_text = full_text[len(bullet_prefix):].strip()
+                # Also strip from runs
+                chars_to_strip = len(bullet_prefix)
+                for rc in runs:
+                    if chars_to_strip <= 0: break
+                    if len(rc['text']) <= chars_to_strip:
+                        chars_to_strip -= len(rc['text'])
+                        rc['text'] = ''
+                    else:
+                        rc['text'] = rc['text'][chars_to_strip:].lstrip()
+                        chars_to_strip = 0
+                runs = [rc for rc in runs if rc['text']]
 
-            items.append({'type': ctype, 'text': full_text, 'runs': runs, 'images': safe_images})
+            items.append({'type': ctype, 'text': full_text, 'runs': runs, 'images': safe_images, 'is_bullet': is_bullet})
             
         elif tag == qn('w:tbl'):
             rows = []
@@ -334,7 +440,14 @@ def format_document(input_path, output_path):
                 except: pass
             if item['text']:
                 p = doc.add_paragraph()
-                p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+                
+                # Apply real Word bullet formatting if detected
+                if item.get('is_bullet'):
+                    set_bullet(p)
+                    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+                else:
+                    p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+                
                 if item['runs']:
                     for r in item['runs']:
                         add_run(p, r['text'], 'Times New Roman', 16, bold=r['bold'], italic=r['italic'], color=BLACK)
@@ -361,6 +474,14 @@ def format_document(input_path, output_path):
 
     for t in doc.tables:
         set_table_borders(t)
+
+    # Ensure bullet numbering definition exists in the document
+    has_bullets = any(item.get('is_bullet') for item in items)
+    if has_bullets:
+        try:
+            ensure_bullet_numbering(doc)
+        except Exception as e:
+            print(f"Warning: Could not set up bullet numbering: {e}")
 
     print(f"Saving to {output_path}")
     doc.save(output_path)
