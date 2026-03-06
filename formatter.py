@@ -582,95 +582,68 @@ def heuristic_bullet_pass(items):
 
 def detect_chapter_headings(items):
     """
-    Detect structural chapter boundaries and promote them to h1 with a page break.
+    Detect structural chapter boundaries by anchoring on the "Objectives" section.
     Rules:
-    1. Short (< 8-10 words)
-    2. Contains a number OR is written in uppercase/title case
-    3. Followed by another short heading-like paragraph or a section title ("OBJECTIVES", "INTRODUCTION")
+    1. Find the paragraph containing "Objectives" (or "Learning Objectives").
+    2. Look backwards to the immediately preceding text paragraph(s).
+    3. Promote the preceding paragraph to an H1 chapter title with a page break.
+    4. If there are TWO short paragraphs right before Objectives (e.g., "Chapter 1" then "Title"),
+       combine them into a single H1 block.
     """
-    first_item_index = -1
+    # 1) Identify the index of the Objectives section(s)
+    objective_indices = []
     for i, item in enumerate(items):
-        if item.get('text') and item['type'] in ('h1', 'h2', 'h3', 'h4', 'h2_no_num', 'body'):
-            first_item_index = i
-            break
-            
-    for i, item in enumerate(items):
-        if i == first_item_index:
-            continue  # The very first text item is the document title (h1), leave it alone
-            
-        if item.get('_merged'):
+        text = item.get('text', '').strip().lower()
+        if item['type'] in ('h1', 'h2', 'h3', 'h4', 'h2_no_num', 'body'):
+            if text in ('objectives', 'objectives:', 'learning objectives', 'learning objectives:'):
+                objective_indices.append(i)
+
+    # 2) For each Objectives section, look backwards to find the chapter title
+    for obj_idx in objective_indices:
+        # Find the immediately preceding valid text paragraphs
+        prev_texts = []
+        for i in range(obj_idx - 1, -1, -1):
+            if items[i].get('text', '').strip() and items[i]['type'] in ('h1', 'h2', 'h3', 'h4', 'h2_no_num', 'body'):
+                prev_texts.append(i)
+                if len(prev_texts) == 2:
+                    break
+                    
+        if not prev_texts:
             continue
             
-        ctype = item['type']
-        if ctype not in ('h1', 'h2', 'h3', 'h4', 'h2_no_num', 'body'):
-            continue
+        first_prev_idx = prev_texts[0]
+        first_item = items[first_prev_idx]
+        first_text = first_item.get('text', '').strip()
+        first_word_count = len(first_text.split())
+
+        # If there's a second preceding paragraph, check if it's a short chapter identifier (e.g. "CHAPTER 1" or "Unit 3")
+        should_merge = False
+        if len(prev_texts) == 2:
+            second_prev_idx = prev_texts[1]
+            second_item = items[second_prev_idx]
+            second_text = second_item.get('text', '').strip()
+            second_word_count = len(second_text.split())
             
-        text = item.get('text', '').strip()
-        if not text:
-            continue
+            # If both lines are reasonably short (e.g. a number + a title), they should be merged
+            if first_word_count <= 15 and second_word_count <= 10:
+                should_merge = True
+
+        if should_merge:
+            # We merge the older paragraph (second_prev) and newer paragraph (first_prev)
+            second_item = items[prev_texts[1]]
+            first_item = items[prev_texts[0]]
             
-        lower_text = text.lower()
-        
-        # Exclude multi-segment subheadings from being chapters (e.g. 1.1 or 2.3.1)
-        if re.match(r'^\d+\.\d+', text):
-            continue
+            # The older paragraph becomes the H1 block
+            second_item['type'] = 'h1'
+            second_item['page_break'] = True
+            second_item['text'] = second_item['text'].strip() + '\n' + first_item['text'].strip()
             
-        # Exclude end-of-chapter sections from being treated as the main chapter heading
-        if any(kw in lower_text for kw in ('summary', 'check your progress', 'practise question', 'practice question', 'objective', 'learning outcome')):
-            continue
-            
-        words = text.split()
-        word_count = len(words)
-        
-        # 1. Short (less than ~10 words)
-        if word_count > 10:
-            continue
-            
-        # 2. Contains a number OR is written in uppercase/title case
-        has_number = any(char.isdigit() for char in text)
-        is_upper_or_title = text.isupper() or text.istitle()
-        has_roman = bool(re.search(r'\b(I|II|III|IV|V|VI|VII|VIII|IX|X|XI|XII)\b', text))
-        
-        if not (has_number or has_roman or is_upper_or_title):
-            continue
-            
-        # 3. Followed by another short heading-like paragraph or section title
-        next_text_item = None
-        for j in range(i + 1, min(i + 6, len(items))):
-            ni = items[j]
-            if ni['type'] in ('h1', 'h2', 'h3', 'h4', 'h2_no_num', 'body') and ni.get('text', '').strip():
-                next_text_item = ni
-                break
-                
-        if not next_text_item:
-            continue
-            
-        next_text = next_text_item['text'].strip()
-        next_word_count = len(next_text.split())
-        next_lower = next_text.lower()
-        
-        next_is_heading_like = False
-        if next_text_item['type'] in ('h1', 'h2', 'h3', 'h4', 'h2_no_num'):
-            next_is_heading_like = True
-        elif next_word_count <= 10 and (next_text.isupper() or next_text.istitle()):
-            next_is_heading_like = True
-        elif any(kw in next_lower for kw in ('objectives', 'introduction', 'summary', 'overview', 'learning outcome', 'about this')):
-            next_is_heading_like = True
-            
-        if not next_is_heading_like:
-            continue
-            
-        # It meets structural requirements for a chapter block
-        item['type'] = 'h1'
-        item['page_break'] = True
-        
-        # If the next item is just another short heading (not a special keyword section),
-        # it is highly likely the second half of the chapter title (e.g., "CHAPTER 1" \n "INTRODUCTION")
-        # In this case, combine them into one H1 block.
-        if (next_word_count <= 12 and not any(kw in next_lower for kw in ('objectives', 'summary', 'overview', 'learning outcome', 'about this'))) \
-           or (next_text_item['type'] in ('h1', 'h2', 'h3', 'h4', 'h2_no_num')):
-            item['text'] = text + '\n' + next_text
-            next_text_item['_merged'] = True
+            # The newer paragraph is flagged for deletion
+            first_item['_merged'] = True
+        else:
+            # Just promote the single immediately preceding paragraph
+            first_item['type'] = 'h1'
+            first_item['page_break'] = True
 
     # Filter out merged items
     items[:] = [it for it in items if not it.get('_merged')]
