@@ -1,0 +1,7 @@
+streamlit
+flask
+flask-cors
+python-docx
+lxml
+werkzeug
+# pywin32  # Required only on Windows for 'flattening' numbered lists with MS Word
