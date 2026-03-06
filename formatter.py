@@ -964,18 +964,26 @@ def format_document(input_path, output_path):
         
         if ct == 'h1':
             p = doc.add_paragraph()
+            try:
+                p.style = doc.styles['Heading 1']
+            except KeyError:
+                pass
+                
             if item.get('page_break'):
                 p.paragraph_format.page_break_before = True
             
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             set_shading(p, 227, 108, 10)
             
-            parts = item['text'].split('\n')
+            parts = item['text'].upper().split('\n')
             for i, part_text in enumerate(parts):
                 if i > 0:
                     p.add_run().add_break()
                 add_run(p, part_text, 'Montserrat', 35, bold=True, color=WHITE)
             set_spacing(p, auto_before=True, auto_after=True, line_mult=1.05)
+            
+            # Link to multilevel numbering so it resets H2/H3/H4 prefixes (e.g. 1.1 -> 2.1)
+            _link_heading_to_numbering(p, 1)
             
         elif ct in ['h2', 'h3', 'h4', 'h2_no_num']:
             # Apply real Word Heading style for auto-numbering
