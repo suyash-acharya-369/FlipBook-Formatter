@@ -598,6 +598,9 @@ def detect_chapter_headings(items):
         if i == first_item_index:
             continue  # The very first text item is the document title (h1), leave it alone
             
+        if item.get('_merged'):
+            continue
+            
         ctype = item['type']
         if ctype not in ('h1', 'h2', 'h3', 'h4', 'h2_no_num', 'body'):
             continue
@@ -651,9 +654,20 @@ def detect_chapter_headings(items):
         if not next_is_heading_like:
             continue
             
-        # It meets all structural requirements for a chapter block
+        # It meets structural requirements for a chapter block
         item['type'] = 'h1'
         item['page_break'] = True
+        
+        # If the next item is just another short heading (not a special keyword section),
+        # it is highly likely the second half of the chapter title (e.g., "CHAPTER 1" \n "INTRODUCTION")
+        # In this case, combine them into one H1 block.
+        if (next_word_count <= 12 and not any(kw in next_lower for kw in ('objective', 'summary', 'overview', 'learning outcome', 'about this'))) \
+           or (next_text_item['type'] in ('h1', 'h2', 'h3', 'h4', 'h2_no_num')):
+            item['text'] = text + '\n' + next_text
+            next_text_item['_merged'] = True
+
+    # Filter out merged items
+    items[:] = [it for it in items if not it.get('_merged')]
 
 def extract_safe_image(src_doc, inline_elem):
     if is_shape_content(inline_elem): return None
