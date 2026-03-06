@@ -959,24 +959,16 @@ def format_document(input_path, output_path):
     print(f"  Total bullets detected: {bullet_count}")
 
     print("PHASE 2: Creating new document...")
-    template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "template.docx")
-    if os.path.exists(template_path):
-        doc = Document(template_path)
-        for element in list(doc.element.body):
-            if element.tag != qn('w:sectPr'):
-                doc.element.body.remove(element)
-    else:
-        doc = Document()
-        sec = doc.sections[0]
-        sec.page_width, sec.page_height = Cm(21), Cm(29.7)
-        # Moderate margins: Top/Bottom 2.54cm, Left/Right 1.91cm
-        sec.top_margin, sec.bottom_margin = Cm(2.54), Cm(2.54)
-        sec.left_margin, sec.right_margin = Cm(1.91), Cm(1.91)
+    doc = Document()
+    sec = doc.sections[0]
+    sec.page_width, sec.page_height = Cm(21), Cm(29.7)
+    # Moderate margins: Top/Bottom 2.54cm, Left/Right 1.91cm
+    sec.top_margin, sec.bottom_margin = Cm(2.54), Cm(2.54)
+    sec.left_margin, sec.right_margin = Cm(1.91), Cm(1.91)
 
-        for hf in [sec.header, sec.footer]:
-            for child in list(hf._element): hf._element.remove(child)
-            from lxml import etree
-            etree.SubElement(hf._element, qn('w:p'))
+    for hf in [sec.header, sec.footer]:
+        for child in list(hf._element): hf._element.remove(child)
+        etree.SubElement(hf._element, qn('w:p'))
 
     # Set up multilevel heading numbering (links Heading 1-4 to auto-numbering)
     setup_multilevel_heading_numbering(doc)
@@ -1008,18 +1000,6 @@ def format_document(input_path, output_path):
                     p.style = doc.styles['Heading 1']
                 except KeyError:
                     pass
-            elif ct == 'doc_title':
-                # Dynamically replace header text in the loaded template
-                TARGET_STRING = "FUNDAMENTALS OF COMPUTER AND INFORMATION TECHNOLOGY"
-                NEW_TITLE = item['text'].strip().upper()
-                for section in doc.sections:
-                    for header in [section.header, section.first_page_header, section.even_page_header]:
-                        if header is None: continue
-                        for hp in header.paragraphs:
-                            for t_elem in hp._element.xpath('.//w:t'):
-                                if t_elem.text and TARGET_STRING in t_elem.text:
-                                    t_elem.text = t_elem.text.replace(TARGET_STRING, NEW_TITLE)
-
                 
             if item.get('page_break'):
                 p.paragraph_format.page_break_before = True
