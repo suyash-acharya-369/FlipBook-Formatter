@@ -594,7 +594,7 @@ def detect_chapter_headings(items):
     objective_indices = []
     for i, item in enumerate(items):
         text = item.get('text', '').strip().lower()
-        if item['type'] in ('h1', 'h2', 'h3', 'h4', 'h2_no_num', 'body'):
+        if item['type'] in ('doc_title', 'h1', 'h2', 'h3', 'h4', 'h2_no_num', 'body'):
             if text in ('objectives', 'objectives:', 'learning objectives', 'learning objectives:'):
                 objective_indices.append(i)
 
@@ -604,7 +604,7 @@ def detect_chapter_headings(items):
         # Find the immediately preceding valid text paragraphs
         prev_texts = []
         for i in range(obj_idx - 1, -1, -1):
-            if items[i].get('text', '').strip() and items[i]['type'] in ('h1', 'h2', 'h3', 'h4', 'h2_no_num', 'body'):
+            if items[i].get('text', '').strip() and items[i]['type'] in ('doc_title', 'h1', 'h2', 'h3', 'h4', 'h2_no_num', 'body'):
                 prev_texts.append(i)
                 if len(prev_texts) == 2:
                     break
@@ -806,9 +806,9 @@ def format_document(input_path, output_path):
             ctype = 'body'
             lower_text = full_text.lower()
             
-            # ── First text paragraph = H1 (document title) ──
+            # ── First text paragraph = Document Title ──
             if not first_text_found and full_text:
-                ctype = 'h1'
+                ctype = 'doc_title'
                 first_text_found = True
             else:
                 # ── Hierarchical heading detection: count segments ──
@@ -962,12 +962,15 @@ def format_document(input_path, output_path):
         # (handled below at the else: active_lists.clear() branch).
         # ──────────────────────────────────────────────────────────────────────
         
-        if ct == 'h1':
+        if ct in ['h1', 'doc_title']:
             p = doc.add_paragraph()
-            try:
-                p.style = doc.styles['Heading 1']
-            except KeyError:
-                pass
+            
+            # Only link actual chapters to the multilevel numbering (so numbering resets properly)
+            if ct == 'h1':
+                try:
+                    p.style = doc.styles['Heading 1']
+                except KeyError:
+                    pass
                 
             if item.get('page_break'):
                 p.paragraph_format.page_break_before = True
@@ -983,7 +986,8 @@ def format_document(input_path, output_path):
             set_spacing(p, auto_before=True, auto_after=True, line_mult=1.05)
             
             # Link to multilevel numbering so it resets H2/H3/H4 prefixes (e.g. 1.1 -> 2.1)
-            _link_heading_to_numbering(p, 1)
+            if ct == 'h1':
+                _link_heading_to_numbering(p, 1)
             
         elif ct in ['h2', 'h3', 'h4', 'h2_no_num']:
             # Apply real Word Heading style for auto-numbering
