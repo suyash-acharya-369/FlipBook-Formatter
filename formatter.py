@@ -660,7 +660,7 @@ def detect_chapter_headings(items):
             title_text = first_item['text'].strip()
             
             # Attempt to strip out leading identifiers like "Unit 3 - " or "Chapter 1: "
-            title_text = re.sub(r'^(?i)(?:chapter|unit|lesson|module|part)?\s*\d+\s*[:\-\.]?\s*', '', title_text)
+            title_text = re.sub(r'^(?:chapter|unit|lesson|module|part)?\s*\d+\s*[:\-\.]?\s*', '', title_text, flags=re.IGNORECASE)
             
             new_text = f"CHAPTER-{chapter_counter}\n{title_text}"
             first_item['type'] = 'h1'
