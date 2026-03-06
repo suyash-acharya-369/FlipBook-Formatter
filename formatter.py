@@ -582,92 +582,111 @@ def heuristic_bullet_pass(items):
 
 def detect_chapter_headings(items):
     """
-    Detect structural chapter boundaries by anchoring on the "Objectives" section.
-    Rules:
-    1. Find the paragraph containing "Objectives" (or "Learning Objectives").
-    2. Look backwards to the immediately preceding text paragraph(s).
-    3. Promote the preceding paragraph to an H1 chapter title with a page break.
-    4. If there are TWO short paragraphs right before Objectives (e.g., "Chapter 1" then "Title"),
-       combine them into a single H1 block.
+    Detect structural chapter boundaries using a two-pass system:
+    1. Forward scan for explicit standalone markers (e.g. "UNIT-1" on its own line).
+    2. Fallback to backward-scanning from "Objectives" sections if no explicit markers found.
     """
-    # 1) Identify the index of the Objectives section(s)
-    objective_indices = []
-    for i, item in enumerate(items):
-        text = item.get('text', '').strip().lower()
-        if item['type'] in ('doc_title', 'h1', 'h2', 'h3', 'h4', 'h2_no_num', 'body'):
-            if text in ('objectives', 'objectives:', 'learning objectives', 'learning objectives:'):
-                objective_indices.append(i)
-
-    # 2) For each Objectives section, look backwards to find the chapter title
     chapter_counter = 1
-    for obj_idx in objective_indices:
-        # Find the immediately preceding valid text paragraphs
-        prev_texts = []
-        for i in range(obj_idx - 1, -1, -1):
-            if items[i].get('text', '').strip() and items[i]['type'] in ('doc_title', 'h1', 'h2', 'h3', 'h4', 'h2_no_num', 'body'):
-                prev_texts.append(i)
-                if len(prev_texts) == 2:
+    processed = set()
+    
+    # --- Pass 1: Explicit markers (e.g. "UNIT-1", "CHAPTER 2") on their own line ---
+    # We strictly match standalone tags to avoid triggering inside paragraph texts or Table of Contents
+    tag_pattern = re.compile(r'^(?:chapter|unit|lesson|module|part)\s*[-:]?\s*\d+\s*$', re.IGNORECASE)
+    
+    for i, item in enumerate(items):
+        if i in processed or item.get('_merged'): continue
+        if item['type'] not in ('doc_title', 'h1', 'h2', 'h3', 'h4', 'h2_no_num', 'body'): continue
+        
+        text = item.get('text', '').strip()
+        if tag_pattern.match(text):
+            # Found a tag! The next valid text is the title.
+            next_idx = -1
+            for j in range(i + 1, len(items)):
+                if items[j].get('text', '').strip() and items[j]['type'] in ('doc_title', 'h1', 'h2', 'h3', 'h4', 'h2_no_num', 'body'):
+                    next_idx = j
                     break
-                    
-        if not prev_texts:
-            continue
             
-        first_prev_idx = prev_texts[0]
-        first_item = items[first_prev_idx]
-        first_text = first_item.get('text', '').strip()
-        first_word_count = len(first_text.split())
+            if next_idx != -1:
+                title_text = items[next_idx]['text'].strip()
+                
+                # Turn the original UNIT marker into the H1 block
+                item['type'] = 'h1'
+                item['page_break'] = True
+                item['text'] = f"CHAPTER-{chapter_counter}\n{title_text}"
+                
+                # Flag the title line to be deleted so it doesn't appear twice
+                items[next_idx]['_merged'] = True
+                processed.add(i)
+                processed.add(next_idx)
+                chapter_counter += 1
 
-        # If there's a second preceding paragraph, check if it's a short chapter identifier (e.g. "CHAPTER 1" or "Unit 3")
-        should_merge = False
-        if len(prev_texts) == 2:
-            second_prev_idx = prev_texts[1]
-            second_item = items[second_prev_idx]
-            second_text = second_item.get('text', '').strip()
-            second_word_count = len(second_text.split())
-            
-            # If both lines are reasonably short (e.g. a number + a title), they should be merged
-            if first_word_count <= 30 and second_word_count <= 10:
-                should_merge = True
-
-        if should_merge:
-            # We merge the older paragraph (second_prev) and newer paragraph (first_prev)
-            second_item = items[prev_texts[1]]
-            first_item = items[prev_texts[0]]
-            
-            title_text = first_item['text'].strip()
-            tag_text = second_item['text'].strip()
-            
-            # If tag text looks like "CHAPTER 1", replace it. Otherwise keep it.
-            is_tag = False
-            if any(char.isdigit() for char in tag_text) or any(w in tag_text.lower() for w in ('chapter', 'unit', 'lesson', 'module', 'part')):
-                if len(tag_text.split()) <= 4:
-                    is_tag = True
+    # --- Pass 2: Fallback to "Objectives" backward-scan if no chapters found yet ---
+    if chapter_counter == 1:
+        objective_indices = []
+        for i, item in enumerate(items):
+            text = item.get('text', '').strip().lower()
+            if item['type'] in ('doc_title', 'h1', 'h2', 'h3', 'h4', 'h2_no_num', 'body'):
+                if text in ('objectives', 'objectives:', 'learning objectives', 'learning objectives:'):
+                    objective_indices.append(i)
                     
-            if is_tag:
-                new_text = f"CHAPTER-{chapter_counter}\n{title_text}"
+        for obj_idx in objective_indices:
+            # Find the immediately preceding valid text paragraphs
+            prev_texts = []
+            for i in range(obj_idx - 1, -1, -1):
+                if items[i].get('text', '').strip() and items[i]['type'] in ('doc_title', 'h1', 'h2', 'h3', 'h4', 'h2_no_num', 'body'):
+                    prev_texts.append(i)
+                    if len(prev_texts) == 2:
+                        break
+                        
+            if not prev_texts:
+                continue
+                
+            first_prev_idx = prev_texts[0]
+            first_item = items[first_prev_idx]
+            first_text = first_item.get('text', '').strip()
+            first_word_count = len(first_text.split())
+
+            should_merge = False
+            if len(prev_texts) == 2:
+                second_prev_idx = prev_texts[1]
+                second_item = items[second_prev_idx]
+                second_text = second_item.get('text', '').strip()
+                second_word_count = len(second_text.split())
+                
+                if first_word_count <= 30 and second_word_count <= 10:
+                    should_merge = True
+
+            if should_merge:
+                second_item = items[prev_texts[1]]
+                first_item = items[prev_texts[0]]
+                
+                title_text = first_item['text'].strip()
+                tag_text = second_item['text'].strip()
+                
+                is_tag = False
+                if any(char.isdigit() for char in tag_text) or any(w in tag_text.lower() for w in ('chapter', 'unit', 'lesson', 'module', 'part')):
+                    if len(tag_text.split()) <= 4:
+                        is_tag = True
+                        
+                if is_tag:
+                    new_text = f"CHAPTER-{chapter_counter}\n{title_text}"
+                else:
+                    new_text = f"CHAPTER-{chapter_counter}\n{tag_text}\n{title_text}"
+                
+                second_item['type'] = 'h1'
+                second_item['page_break'] = True
+                second_item['text'] = new_text
+                first_item['_merged'] = True
             else:
-                new_text = f"CHAPTER-{chapter_counter}\n{tag_text}\n{title_text}"
-            
-            # The older paragraph becomes the H1 block
-            second_item['type'] = 'h1'
-            second_item['page_break'] = True
-            second_item['text'] = new_text
-            
-            # The newer paragraph is flagged for deletion
-            first_item['_merged'] = True
-        else:
-            # Just promote the single immediately preceding paragraph
-            title_text = first_item['text'].strip()
-            
-            # Attempt to strip out leading identifiers like "Unit 3 - " or "Chapter 1: "
-            title_text = re.sub(r'^(?:chapter|unit|lesson|module|part)?\s*\d+\s*[:\-\.]?\s*', '', title_text, flags=re.IGNORECASE)
-            
-            new_text = f"CHAPTER-{chapter_counter}\n{title_text}"
-            first_item['type'] = 'h1'
-            first_item['page_break'] = True
-            first_item['text'] = new_text
-            
-        chapter_counter += 1
+                title_text = first_item['text'].strip()
+                title_text = re.sub(r'^(?:chapter|unit|lesson|module|part)?\s*\d+\s*[:\-\.]?\s*', '', title_text, flags=re.IGNORECASE)
+                
+                new_text = f"CHAPTER-{chapter_counter}\n{title_text}"
+                first_item['type'] = 'h1'
+                first_item['page_break'] = True
+                first_item['text'] = new_text
+                
+            chapter_counter += 1
 
     # Filter out merged items
     items[:] = [it for it in items if not it.get('_merged')]
