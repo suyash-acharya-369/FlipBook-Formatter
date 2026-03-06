@@ -654,7 +654,7 @@ def detect_chapter_headings(items):
             next_is_heading_like = True
         elif next_word_count <= 10 and (next_text.isupper() or next_text.istitle()):
             next_is_heading_like = True
-        elif any(kw in next_lower for kw in ('objective', 'introduction', 'summary', 'overview', 'learning outcome', 'about this')):
+        elif any(kw in next_lower for kw in ('objectives', 'introduction', 'summary', 'overview', 'learning outcome', 'about this')):
             next_is_heading_like = True
             
         if not next_is_heading_like:
@@ -667,7 +667,7 @@ def detect_chapter_headings(items):
         # If the next item is just another short heading (not a special keyword section),
         # it is highly likely the second half of the chapter title (e.g., "CHAPTER 1" \n "INTRODUCTION")
         # In this case, combine them into one H1 block.
-        if (next_word_count <= 12 and not any(kw in next_lower for kw in ('objective', 'summary', 'overview', 'learning outcome', 'about this'))) \
+        if (next_word_count <= 12 and not any(kw in next_lower for kw in ('objectives', 'summary', 'overview', 'learning outcome', 'about this'))) \
            or (next_text_item['type'] in ('h1', 'h2', 'h3', 'h4', 'h2_no_num')):
             item['text'] = text + '\n' + next_text
             next_text_item['_merged'] = True
@@ -871,7 +871,13 @@ def format_document(input_path, output_path):
                             runs = [rc for rc in runs if rc['text']]
                 
                 # Special keywords as H2 (no numbering)
-                h2_keywords = ('check your progress', 'summary', 'check your progress:', 'summary:', 'objectives', 'objectives:', 'ojectives', 'ojectives:')
+                # Ensure 'objectives', 'summary', and practice questions are formatted consistently as standalone h2 headings.
+                h2_keywords = ('check your progress', 'check your progress:', 
+                               'summary', 'summary:', 
+                               'objectives', 'objectives:', 'ojectives', 'ojectives:',
+                               'practise questions', 'practice questions',
+                               'practise question', 'practice question',
+                               'let us sum up', 'glossary')
                 if ctype == 'body' and lower_text.strip() in h2_keywords:
                     ctype = 'h2_no_num'  # h2 formatting, but no heading numbering
                 
