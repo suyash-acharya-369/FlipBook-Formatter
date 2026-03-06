@@ -609,8 +609,14 @@ def detect_chapter_headings(items):
         if not text:
             continue
             
+        lower_text = text.lower()
+        
         # Exclude multi-segment subheadings from being chapters (e.g. 1.1 or 2.3.1)
         if re.match(r'^\d+\.\d+', text):
+            continue
+            
+        # Exclude end-of-chapter sections from being treated as the main chapter heading
+        if any(kw in lower_text for kw in ('summary', 'check your progress', 'practise question', 'practice question', 'objective', 'learning outcome')):
             continue
             
         words = text.split()
