@@ -4,7 +4,7 @@ import warnings
 from docx import Document
 from docx.oxml.ns import qn
 from docx.shared import Pt, Cm, RGBColor, Emu
-from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml import OxmlElement
 from lxml import etree
@@ -579,6 +579,82 @@ def heuristic_bullet_pass(items):
             if j < len(items) and items[j]['type'] == 'body':
                 items[j]['is_bullet'] = True
 
+
+def detect_chapter_headings(items):
+    """
+    Detect structural chapter boundaries and promote them to h1 with a page break.
+    Rules:
+    1. Short (< 8-10 words)
+    2. Contains a number OR is written in uppercase/title case
+    3. Followed by another short heading-like paragraph or a section title ("OBJECTIVES", "INTRODUCTION")
+    """
+    first_item_index = -1
+    for i, item in enumerate(items):
+        if item.get('text') and item['type'] in ('h1', 'h2', 'h3', 'h4', 'h2_no_num', 'body'):
+            first_item_index = i
+            break
+            
+    for i, item in enumerate(items):
+        if i == first_item_index:
+            continue  # The very first text item is the document title (h1), leave it alone
+            
+        ctype = item['type']
+        if ctype not in ('h1', 'h2', 'h3', 'h4', 'h2_no_num', 'body'):
+            continue
+            
+        text = item.get('text', '').strip()
+        if not text:
+            continue
+            
+        # Exclude multi-segment subheadings from being chapters (e.g. 1.1 or 2.3.1)
+        if re.match(r'^\d+\.\d+', text):
+            continue
+            
+        words = text.split()
+        word_count = len(words)
+        
+        # 1. Short (less than ~10 words)
+        if word_count > 10:
+            continue
+            
+        # 2. Contains a number OR is written in uppercase/title case
+        has_number = any(char.isdigit() for char in text)
+        is_upper_or_title = text.isupper() or text.istitle()
+        has_roman = bool(re.search(r'\b(I|II|III|IV|V|VI|VII|VIII|IX|X|XI|XII)\b', text))
+        
+        if not (has_number or has_roman or is_upper_or_title):
+            continue
+            
+        # 3. Followed by another short heading-like paragraph or section title
+        next_text_item = None
+        for j in range(i + 1, min(i + 6, len(items))):
+            ni = items[j]
+            if ni['type'] in ('h1', 'h2', 'h3', 'h4', 'h2_no_num', 'body') and ni.get('text', '').strip():
+                next_text_item = ni
+                break
+                
+        if not next_text_item:
+            continue
+            
+        next_text = next_text_item['text'].strip()
+        next_word_count = len(next_text.split())
+        next_lower = next_text.lower()
+        
+        next_is_heading_like = False
+        if next_text_item['type'] in ('h1', 'h2', 'h3', 'h4', 'h2_no_num'):
+            next_is_heading_like = True
+        elif next_word_count <= 10 and (next_text.isupper() or next_text.istitle()):
+            next_is_heading_like = True
+        elif any(kw in next_lower for kw in ('objective', 'introduction', 'summary', 'overview', 'learning outcome', 'about this')):
+            next_is_heading_like = True
+            
+        if not next_is_heading_like:
+            continue
+            
+        # It meets all structural requirements for a chapter block
+        item['type'] = 'h1'
+        item['page_break'] = True
+
 def extract_safe_image(src_doc, inline_elem):
     if is_shape_content(inline_elem): return None
     extent = inline_elem.find(qn('wp:extent'))
@@ -821,6 +897,9 @@ def format_document(input_path, output_path):
                 rows.append(cells)
             if rows: items.append({'type': 'table', 'rows': rows})
 
+    # ── Structural chapter detection pass ──
+    detect_chapter_headings(items)
+
     # ── Heuristic bullet pass: detect short sentence lists ──
     heuristic_bullet_pass(items)
     bullet_count = sum(1 for it in items if it.get('is_bullet'))
@@ -861,6 +940,9 @@ def format_document(input_path, output_path):
         
         if ct == 'h1':
             p = doc.add_paragraph()
+            if item.get('page_break'):
+                p.paragraph_format.page_break_before = True
+            
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             set_shading(p, 227, 108, 10)
             
