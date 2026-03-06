@@ -626,7 +626,7 @@ def detect_chapter_headings(items):
             second_word_count = len(second_text.split())
             
             # If both lines are reasonably short (e.g. a number + a title), they should be merged
-            if first_word_count <= 15 and second_word_count <= 10:
+            if first_word_count <= 30 and second_word_count <= 10:
                 should_merge = True
 
         if should_merge:
