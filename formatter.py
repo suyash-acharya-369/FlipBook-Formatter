@@ -671,6 +671,16 @@ def detect_chapter_headings(items):
 
     # Filter out merged items
     items[:] = [it for it in items if not it.get('_merged')]
+    
+    # Remove all front matter (cover pages, TOC) before Chapter 1
+    first_chapter_idx = -1
+    for i, it in enumerate(items):
+        if it.get('type') == 'h1':
+            first_chapter_idx = i
+            break
+            
+    if first_chapter_idx > 0:
+        items[:] = items[first_chapter_idx:]
 
 def extract_safe_image(src_doc, inline_elem):
     if is_shape_content(inline_elem): return None
