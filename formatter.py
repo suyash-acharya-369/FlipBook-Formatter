@@ -300,7 +300,7 @@ def setup_multilevel_heading_numbering(doc):
     
     # Level formats: 1, 1.1, 1.1.1, 1.1.1.1
     level_formats = [
-        '%1',           # Level 0: "1"
+        '',             # Level 0: hidden, so we manually print "CHAPTER-N"
         '%1.%2',        # Level 1: "1.1" 
         '%1.%2.%3',     # Level 2: "1.1.1"
         '%1.%2.%3.%4',  # Level 3: "1.1.1.1"
@@ -599,6 +599,7 @@ def detect_chapter_headings(items):
                 objective_indices.append(i)
 
     # 2) For each Objectives section, look backwards to find the chapter title
+    chapter_counter = 1
     for obj_idx in objective_indices:
         # Find the immediately preceding valid text paragraphs
         prev_texts = []
@@ -633,17 +634,40 @@ def detect_chapter_headings(items):
             second_item = items[prev_texts[1]]
             first_item = items[prev_texts[0]]
             
+            title_text = first_item['text'].strip()
+            tag_text = second_item['text'].strip()
+            
+            # If tag text looks like "CHAPTER 1", replace it. Otherwise keep it.
+            is_tag = False
+            if any(char.isdigit() for char in tag_text) or any(w in tag_text.lower() for w in ('chapter', 'unit', 'lesson', 'module', 'part')):
+                if len(tag_text.split()) <= 4:
+                    is_tag = True
+                    
+            if is_tag:
+                new_text = f"CHAPTER-{chapter_counter}\n{title_text}"
+            else:
+                new_text = f"CHAPTER-{chapter_counter}\n{tag_text}\n{title_text}"
+            
             # The older paragraph becomes the H1 block
             second_item['type'] = 'h1'
             second_item['page_break'] = True
-            second_item['text'] = second_item['text'].strip() + '\n' + first_item['text'].strip()
+            second_item['text'] = new_text
             
             # The newer paragraph is flagged for deletion
             first_item['_merged'] = True
         else:
             # Just promote the single immediately preceding paragraph
+            title_text = first_item['text'].strip()
+            
+            # Attempt to strip out leading identifiers like "Unit 3 - " or "Chapter 1: "
+            title_text = re.sub(r'^(?i)(?:chapter|unit|lesson|module|part)?\s*\d+\s*[:\-\.]?\s*', '', title_text)
+            
+            new_text = f"CHAPTER-{chapter_counter}\n{title_text}"
             first_item['type'] = 'h1'
             first_item['page_break'] = True
+            first_item['text'] = new_text
+            
+        chapter_counter += 1
 
     # Filter out merged items
     items[:] = [it for it in items if not it.get('_merged')]
@@ -845,7 +869,8 @@ def format_document(input_path, output_path):
                 
                 # Special keywords as H2 (no numbering)
                 # Ensure 'objectives', 'summary', and practice questions are formatted consistently as standalone h2 headings.
-                h2_keywords = ('check your progress', 'check your progress:', 
+                h2_keywords = ('introduction', 'introduction:',
+                               'check your progress', 'check your progress:', 
                                'summary', 'summary:', 
                                'objectives', 'objectives:', 'ojectives', 'ojectives:',
                                'practise questions', 'practice questions',
