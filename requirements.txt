@@ -5,3 +5,4 @@ python-docx
 lxml
 werkzeug
 # pywin32  # Required only on Windows for 'flattening' numbered lists with MS Word
+gunicorn
