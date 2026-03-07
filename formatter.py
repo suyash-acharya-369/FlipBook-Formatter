@@ -1001,10 +1001,14 @@ def format_document(input_path, output_path):
                 except KeyError:
                     pass
                 
+            p.paragraph_format.left_indent = Pt(0)
+            p.paragraph_format.right_indent = Pt(0)
+            p.paragraph_format.first_line_indent = Pt(0)
+                
             if item.get('page_break'):
                 p.paragraph_format.page_break_before = True
             
-            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p.alignment = WD_ALIGN_PARAGRAPH.LEFT
             set_shading(p, 227, 108, 10)
             
             parts = item['text'].upper().split('\n')
