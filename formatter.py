@@ -1008,7 +1008,7 @@ def format_document(input_path, output_path):
             if item.get('page_break'):
                 p.paragraph_format.page_break_before = True
             
-            p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             set_shading(p, 227, 108, 10)
             
             parts = item['text'].upper().split('\n')
